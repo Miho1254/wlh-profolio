@@ -1,1 +1,352 @@
-chỗ này mốt sẽ dùng để fetch hết tất cả những staff có thẻ NFC 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách thành viên</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .member-card:hover .member-social {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .loading {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    .member-card {
+      transition: transform 0.3s ease;
+    }
+
+    .member-card:hover {
+      transform: scale(1.05);
+      /* Tạo hiệu ứng phóng to nhẹ */
+    }
+
+    .member-card .member-social {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .member-card:hover .member-social {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800 font-sans min-h-screen">
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
+            <i class="fas fa-users text-white"></i>
+          </div>
+          <h1 class="text-xl font-bold text-blue-700">Team Members</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <nav class="w-full">
+      <div class="max-w-5xl mx-auto px-4 py-3">
+        <div class="grid grid-cols-2 sm:flex sm:justify-center sm:space-x-4 gap-2">
+          <a href="?group=a" data-group="a"
+            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Lãnh
+            Đạo</a>
+          <a href="?group=b" data-group="b"
+            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Kỹ
+            Thuật</a>
+          <a href="?group=c" data-group="c"
+            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Thiết
+            Kế</a>
+          <a href="?group=d" data-group="d"
+            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Marketing</a>
+          <a href="?group=e" ata-group="e"
+            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Khác</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div class="flex flex-col items-center justify-center text-center">
+        <h2 id="group-title" class="text-3xl font-bold mb-2 text-gray-800">Đang tải...</h2>
+        <p id="group-description" class="text-gray-600"></p>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div class="relative w-full">
+          <input type="text" id="search-input" placeholder="Tìm thành viên..." class="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                   transition-all duration-200 w-full sm:w-64">
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <!-- Skeleton loading item -->
+      <div class="flex flex-col gap-2 animate-pulse">
+        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
+        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+      </div>
+
+      <div class="flex flex-col gap-2 animate-pulse">
+        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
+        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+      </div>
+
+      <div class="flex flex-col gap-2 animate-pulse">
+        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
+        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+      </div>
+
+      <div class="flex flex-col gap-2 animate-pulse">
+        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
+        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+      </div>
+    </div>
+
+    <div id="group-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 hidden">
+      <!-- Member cards will be inserted here -->
+    </div>
+
+    <div id="no-results" class="text-center py-12 hidden">
+      <i class="fas fa-user-slash text-4xl text-gray-300 mb-4"></i>
+      <h3 class="text-xl font-medium text-gray-500">Không tìm thấy thành viên nào</h3>
+      <p class="text-gray-400 mt-2">Thử tìm kiếm với từ khóa khác</p>
+    </div>
+  </main>
+
+  <script>
+    // Sample data - in real app this would come from API
+    const params = new URLSearchParams(window.location.search);
+    const group = params.get('group') || 'a';
+
+    const groupData = {
+      a: {
+        title: "🌟 Nhóm Lãnh Đạo",
+        description: "Đội ngũ quản lý và định hướng chiến lược",
+        members: [
+          {
+            name: "Nguyễn Văn A",
+            role: "Trưởng nhóm",
+            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
+            social: {
+              facebook: "#",
+              twitter: "#",
+              linkedin: "#"
+            }
+          },
+          {
+            name: "Trần Thị B",
+            role: "Phó nhóm",
+            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
+            social: {
+              facebook: "#",
+              twitter: "#",
+              linkedin: "#"
+            }
+          },
+          {
+            name: "Lê Văn C",
+            role: "Quản lý dự án",
+            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
+            social: {
+              facebook: "#",
+              twitter: "#",
+              linkedin: "#"
+            }
+          },
+          {
+            name: "Phạm Thị D",
+            role: "Quản lý nhân sự",
+            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
+            social: {
+              facebook: "#",
+              twitter: "#",
+              linkedin: "#"
+            }
+          },
+          {
+            name: "Hoàng Văn E",
+            role: "Quản lý tài chính",
+            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
+            social: {
+              facebook: "#",
+              twitter: "#",
+              linkedin: "#"
+            }
+          }
+        ]
+      },
+    };
+
+    // DOM elements
+    const titleEl = document.getElementById('group-title');
+    const descEl = document.getElementById('group-description');
+    const loadingEl = document.getElementById('loading');
+    const contentEl = document.getElementById('group-content');
+    const noResultsEl = document.getElementById('no-results');
+    const searchInput = document.getElementById('search-input');
+
+    // Render group
+
+    function renderGroup(groupKey) {
+      const group = groupData[groupKey] || groupData.a;
+
+      titleEl.textContent = group.title || "Tên nhóm không xác định";
+      descEl.textContent = group.description || "";
+
+      contentEl.innerHTML = '';
+      loadingEl.classList.remove('hidden');
+      contentEl.classList.add('hidden');
+      noResultsEl.classList.add('hidden');
+
+      setTimeout(() => {
+        loadingEl.classList.add('hidden');
+
+        if (!group.members || group.members.length === 0) {
+          noResultsEl.classList.remove('hidden');
+          contentEl.classList.add('hidden');
+          return;
+        }
+
+        group.members.forEach(member => {
+          const card = document.createElement('div');
+          card.className = `
+        member-card flex flex-col group transition-all duration-300
+      `;
+
+          // Avatar gốc không bị bóp méo, giữ nguyên kích thước
+          const avatarWrapper = document.createElement('div');
+          avatarWrapper.className = 'relative w-full';
+
+          const avatarImg = document.createElement('img');
+          avatarImg.src = member.avatar;
+          avatarImg.alt = member.name;
+          avatarImg.loading = 'lazy';
+          avatarImg.className = 'w-full h-auto'; // Hiển thị full chiều rộng, tự scale chiều cao
+          // Không dùng object-cover, không ép tỷ lệ
+
+          const socialDiv = document.createElement('div');
+          socialDiv.className = `
+        absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent
+        px-3 py-2 flex justify-center gap-3 opacity-0 group-hover:opacity-100
+        transition-opacity duration-300
+      `;
+
+          if (member.social) {
+            Object.entries(member.social).forEach(([platform, url]) => {
+              const link = document.createElement('a');
+              link.href = url;
+              link.target = '_blank';
+              link.className = 'text-white text-lg hover:text-blue-300';
+              link.innerHTML = `<i class="fab fa-${platform}"></i>`;
+              socialDiv.appendChild(link);
+            });
+          }
+
+          avatarWrapper.appendChild(avatarImg);
+          avatarWrapper.appendChild(socialDiv);
+
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'mt-2 text-center';
+
+          const nameEl = document.createElement('h3');
+          nameEl.textContent = member.name;
+          nameEl.className = 'text-base font-semibold text-gray-900 truncate';
+
+          const roleEl = document.createElement('p');
+          roleEl.textContent = member.role;
+          roleEl.className = 'text-sm text-gray-500';
+
+          infoDiv.appendChild(nameEl);
+          infoDiv.appendChild(roleEl);
+
+          card.appendChild(avatarWrapper);
+          card.appendChild(infoDiv);
+
+          card.dataset.search = `${member.name.toLowerCase()} ${member.role.toLowerCase()}`;
+
+          contentEl.appendChild(card);
+
+        });
+
+        contentEl.classList.remove('hidden');
+      }, 800);
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const cards = contentEl.querySelectorAll('.member-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const searchText = card.dataset.search || '';
+        if (searchText.includes(searchTerm)) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      if (visibleCount === 0 && searchTerm.length > 0) {
+        noResultsEl.classList.remove('hidden');
+      } else {
+        noResultsEl.classList.add('hidden');
+      }
+    });
+
+
+    // Initial render
+    renderGroup(group);
+
+    // Handle group change via URL params
+    window.addEventListener('popstate', () => {
+      const params = new URLSearchParams(window.location.search);
+      const newGroup = params.get('group') || 'a';
+      renderGroup(newGroup);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentGroup = urlParams.get("group");
+
+      document.querySelectorAll(".tab").forEach(el => {
+        if (el.dataset.group === currentGroup) {
+          el.classList.add("bg-blue-500", "text-white");
+          el.classList.remove("bg-gray-100", "text-gray-700");
+        }
+      });
+    });
+
+  </script>
+</body>
+
+</html>
