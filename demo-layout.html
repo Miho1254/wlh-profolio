@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết thành viên</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .avatar-container {
+            background-image: url("https://media.istockphoto.com/id/1333010525/vi/vec-to/minh-h%E1%BB%8Da-ngh%E1%BB%87-thu%E1%BA%ADt-pixel-ph%E1%BA%B3ng-%C4%91%C6%A1n-gi%E1%BA%A3n-c%E1%BB%A7a-n%E1%BB%81n-phong-c%E1%BA%A3nh-ngo%C3%A0i-tr%E1%BB%9Di-ho%E1%BA%A1t-h%C3%ACnh-m%C3%A0n-h%C3%ACnh.jpg?s=612x612&w=is&k=20&c=3X0Cqs6V7CzWvMxUXLkx1lLxnklhBOTd1r02jAqXaXI=");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .clip-avatar {
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 80% 100%, 0 100%);
+        }
+
+        /* Ẩn thanh cuộn nhưng vẫn giữ cuộn */
+        .scrollable-info {
+            overflow-y: scroll;
+            /* Cho phép cuộn theo chiều dọc */
+            scrollbar-width: thin;
+            /* Trên Firefox: thanh cuộn mảnh */
+            scrollbar-color: transparent transparent;
+            /* Trên Firefox: ẩn màu của thanh cuộn */
+        }
+
+        /* Ẩn thanh cuộn trên các trình duyệt Webkit (Chrome, Safari) */
+        .scrollable-info::-webkit-scrollbar {
+            display: none;
+            /* Ẩn thanh cuộn */
+        }
+    </style>
+</head>
+
+<body class="bg-white text-zinc-800">
+
+    <section
+        class="w-full min-h-screen px-6 py-16 md:py-24 bg-gradient-to-b from-purple-100 via-pink-100 to-violet-200">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+
+            <div class="relative w-full flex items-center justify-center md:sticky md:top-16">
+                <div
+                    class="w-72 h-72 md:w-[400px] md:h-[400px] overflow-hidden relative avatar-container rounded-xl shadow-xl">
+                    <img src="https://media.discordapp.net/attachments/1348227137873776680/1369240866920861767/kaneki.png?ex=681b246d&is=6819d2ed&hm=2bc459531c4e22505f97b85c5e5eec786ba4cd34e88b92c37e7fc253ab606f51&=&format=webp&quality=lossless&width=1025&height=1035"
+                        alt="Ảnh thành viên" class="w-full h-full object-cover clip-avatar rounded-xl" />
+                </div>
+            </div>
+
+            <!-- Info (Scrollable) -->
+            <div class="space-y-6 max-h-screen">
+                <div class="space-y-2">
+                    <h1 class="text-4xl font-bold text-zinc-900">Nguyễn Văn A 🧙‍♂️</h1>
+                    <h2 class="text-lg font-medium text-indigo-600">Frontend Developer 💻</h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-zinc-600">
+                    <div>
+                        <span class="block text-zinc-500">Mảng phụ trách</span>
+                        <span class="font-medium text-rose-600">Thiết kế UI / React</span>
+                    </div>
+                    <div>
+                        <span class="block text-zinc-500">Ngày tham gia</span>
+                        <span class="font-medium text-cyan-600">01/02/2024</span>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <span class="block text-zinc-500">Catchphrase</span>
+                        <span class="italic text-violet-700 font-semibold">“Mẹ mày béo, nhưng code mẹ mày chất.”
+                            💥</span>
+                    </div>
+                </div>
+
+                <p class="text-lg leading-relaxed text-zinc-700 border-l-4 border-pink-400 pl-4">
+                    Với đam mê thiết kế giao diện hiện đại và trải nghiệm người dùng, mình luôn tìm cách tối ưu UI theo
+                    cách đẹp mà đơn giản.
+                    Ngoài ra thích đá phò không mang bao.
+                </p>
+
+                <!-- Fun facts -->
+                <div class="bg-white/60 border border-zinc-200 backdrop-blur p-4 rounded-lg space-y-2">
+                    <h3 class="font-semibold text-purple-700 text-md">🎲 Fun facts</h3>
+                    <ul class="list-disc list-inside text-sm text-zinc-700">
+                        <li>Thích ăn bánh tráng trộn khi code 🧂</li>
+                        <li>Có thể xem hết 1 season anime trong 1 ngày 🎬</li>
+                        <li>Có thù với CSS nhưng lại yêu Tailwind 😅</li>
+                    </ul>
+                </div>
+
+                <!-- Skills Section -->
+                <div class="flex flex-wrap gap-4 pt-4 text-sm font-medium">
+                    <a href="#" class="text-indigo-600 hover:underline hover:text-pink-500 transition">GitHub</a>
+                    <a href="#" class="text-indigo-600 hover:underline hover:text-pink-500 transition">LinkedIn</a>
+                    <a href="#" class="text-indigo-600 hover:underline hover:text-pink-500 transition">Portfolio</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>
+
+</html>
