@@ -32,8 +32,8 @@
     <meta property="og:title" content="World Simp and Friends - Vietnamese Hololive and Vtuber Community">
     <meta property="og:description"
         content="Join our vibrant community of Hololive and Vtuber enthusiasts in Vietnam. Connect, share, and celebrate Vtuber culture with us!">
-    <meta property="og:image" content="/public/images/hero.webp">
-    <meta property="og:url" content="https://www.worldlotho.com">
+    <meta property="og:image" content="https://worldlotho.com/public/images/hero.webp">
+    <meta property="og:url" content="https://worldlotho.com">
     <meta property="og:type" content="website">
 
     <!-- Twitter Card -->
@@ -41,7 +41,7 @@
     <meta name="twitter:title" content="World Simp and Friends - Vietnamese Hololive and Vtuber Community">
     <meta name="twitter:description"
         content="Join our vibrant community of Hololive and Vtuber enthusiasts in Vietnam. Connect, share, and celebrate Vtuber culture with us!">
-    <meta name="twitter:image" content="/public/images/hero.webp">
+    <meta name="twitter:image" content="https://worldlotho.com/public/images/hero.webp">
     <meta name="twitter:site" content="@worldsimpVN">
 
     <!-- Icons -->
@@ -81,7 +81,43 @@
 
     <!-- ✅ Tailwind CDN (ưu tiên sau preload) -->
     <script src="https://cdn.tailwindcss.com" defer></script>
+
+    <!-- ✅ Canonical -->    
+    <link rel="canonical" href="https://worldlotho.com/" />
+
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "World Lọt Hố",
+          "alternateName": "World Simp Hololive Vietnam",
+          "url": "https://worldlotho.com",
+          "logo": "https://worldlotho.com/public/images/logo.png",
+          "sameAs": [
+            "https://facebook.com/worldlotho",
+            "https://twitter.com/worldlotho",
+            "https://instagram.com/worldlotho"
+          ],
+          "description": "Cộng đồng người hâm mộ Hololive tại Việt Nam. Tổ chức các sự kiện offline, giao lưu và kết nối các simp cùng chí hướng.",
+          "foundingDate": "2021-05-23",
+          "founder": {
+            "@type": "Person",
+            "name": "Huynh Nguyen Chuong"
+          }
+        }
+        </script>
+        
 </head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TSFGRK3ZTG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TSFGRK3ZTG');
+</script>
 
 <body>
 
@@ -391,7 +427,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
                 <div class="text-center">
                     <a href="https://www.facebook.com/PeoPoStore" target="_blank" rel="noopener noreferrer">
-                        <img src="/public/images/peopo.png" alt="Peopo store Logo" class="mx-auto max-h-32"
+                        <img src="/public/images/peopo.webp" alt="Peopo store Logo" class="mx-auto max-h-32"
                             loading="lazy">
                     </a>
                     <h3 class="text-lg font-semibold mt-4">PeoPo Store</h3>
