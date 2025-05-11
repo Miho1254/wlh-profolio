@@ -451,6 +451,68 @@
         </div>
     </section>
 
+    <section id="faq" class="py-16 bg-gradient-to-br from-blue-50 to-gray-100">
+        <div class="max-w-screen-xl mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
+                Frequently Asked Questions
+                <span class="block text-base md:text-lg mt-2 text-gray-500 font-normal">
+                    Find answers to common questions
+                </span>
+            </h2>
+            <div class="space-y-6">
+                <div class="faq-item bg-white rounded-lg shadow-md p-6 transition duration-300 hover:shadow-lg">
+                    <button class="flex justify-between items-center w-full text-left text-gray-800 font-semibold text-lg">
+                        <span>What is World Simp and Friends?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-content mt-4 text-gray-600 hidden">
+                        <p>World Simp and Friends is a vibrant community for Hololive and Vtuber enthusiasts in Vietnam. "Say Hi From Vietnam", We aim to connect fans and celebrate Vtuber culture through events, content, and collaboration.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item bg-white rounded-lg shadow-md p-6 transition duration-300 hover:shadow-lg">
+                    <button class="flex justify-between items-center w-full text-left text-gray-800 font-semibold text-lg">
+                        <span>What is our relationship with Cover Corp?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-content mt-4 text-gray-600 hidden">
+                        <p>We are an independent community originating from Vietnam. We have no legal affiliation or binding relationship whatsoever with the Hololive community.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item bg-white rounded-lg shadow-md p-6 transition duration-300 hover:shadow-lg">
+                    <button class="flex justify-between items-center w-full text-left text-gray-800 font-semibold text-lg">
+                        <span>How do you generate revenue?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-content mt-4 text-gray-600 hidden">
+                        <p>We generate revenue from various sources, with a significant portion coming from the sale of official merchandise created by artists (with their permission) for the community. A portion of the revenue is reinvested back into the community to support its growth.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item bg-white rounded-lg shadow-md p-6 transition duration-300 hover:shadow-lg">
+                    <button class="flex justify-between items-center w-full text-left text-gray-800 font-semibold text-lg">
+                        <span>Is the community open to development collaboration opportunities?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-content mt-4 text-gray-600 hidden">
+                        <p>Yes, we are always open to exploring potential collaborations that align with our community's values and goals. If you have any interesting project or event ideas that could benefit the Vietnamese Hololive fan community, please feel free to reach out to us with the details through <a class="text-blue-600 hover:text-purple-600 underline" href="https://www.facebook.com/worldlotho2305">Facebook</a> or contact to our <a class="text-blue-600 hover:text-purple-600 underline" href="mailto:worldsimp@urumocha.com">business mail</a>. We'd love to hear from you!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.querySelectorAll('.faq-item button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const icon = button.querySelector('i');
+                    content.classList.toggle('hidden');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                });
+            });
+        </script>
+    </section>
 
     <section id="contact" class="py-10 bg-gray-800">
         <div class="max-w-screen-xl mx-auto px-6 text-center">
