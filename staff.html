@@ -5,37 +5,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Danh sách thành viên</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    .member-card:hover .member-social {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .loading {
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 0.6;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
     .member-card {
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .member-card:hover {
-      transform: scale(1.05);
-      /* Tạo hiệu ứng phóng to nhẹ */
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
 
     .member-card .member-social {
@@ -48,304 +28,512 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    [x-cloak] {
+      display: none !important;
+    }
   </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800 font-sans min-h-screen">
+<body class="bg-gradient-to-br from-gray-100 to-blue-50 text-gray-800 font-sans min-h-screen" x-data="staffApp()"
+  x-init="initApp()">
 
-  <!-- Navbar -->
-  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b shadow-sm">
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
-            <i class="fas fa-users text-white"></i>
-          </div>
-          <h1 class="text-xl font-bold text-blue-700">Team Members</h1>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
+          <i class="fas fa-users text-white"></i>
         </div>
+        <h1 class="text-2xl font-bold text-blue-700">Thành Viên Team</h1>
       </div>
     </div>
   </header>
 
-  <!-- Main Content -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <nav class="w-full">
-      <div class="max-w-5xl mx-auto px-4 py-3">
-        <div class="grid grid-cols-2 sm:flex sm:justify-center sm:space-x-4 gap-2">
-          <a href="?group=a" data-group="a"
-            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Lãnh
-            Đạo</a>
-          <a href="?group=b" data-group="b"
-            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Kỹ
-            Thuật</a>
-          <a href="?group=c" data-group="c"
-            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Thiết
-            Kế</a>
-          <a href="?group=d" data-group="d"
-            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Marketing</a>
-          <a href="?group=e" ata-group="e"
-            class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg bg-gray-100 text-gray-700 text-base font-semibold hover:bg-blue-100 hover:text-blue-700 transition">Khác</a>
+    <div x-show="currentView === 'list'" x-cloak>
+      <nav class="w-full mb-8" x-show="!loading.initialSetup && categories.length > 0">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+          <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
+            <button @click="selectCategory('')"
+              :class="{ 'bg-blue-600 text-white shadow-md': selectedCategoryId === '', 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700': selectedCategoryId !== '' }"
+              class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ease-in-out">
+              Tất cả
+            </button>
+            <template x-for="category in categories" :key="category.id">
+              <button @click="selectCategory(category.id)"
+                :class="{ 'bg-blue-600 text-white shadow-md': selectedCategoryId === category.id, 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700': selectedCategoryId !== category.id }"
+                class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ease-in-out truncate"
+                x-text="category.title">
+              </button>
+            </template>
+          </div>
+        </div>
+      </nav>
+      <div x-show="loading.initialSetup && categories.length === 0 && !apiError.categories"
+        class="text-center py-6 text-gray-500">Đang tải danh mục...</div>
+      <div x-show="apiError.categories && !loading.initialSetup" class="text-center py-6 text-red-500"
+        x-text="apiError.categories"></div>
+
+
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div class="flex flex-col items-start justify-center text-left">
+          <h2 x-text="currentCategoryTitle()" class="text-3xl font-bold mb-1 text-gray-800 capitalize"></h2>
+          <p x-text="currentCategoryDescription()" class="text-gray-600 text-sm"></p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative w-full">
+            <input type="text" x-model.debounce.300ms="searchTerm" placeholder="Tìm thành viên..." class="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                          transition-all duration-200 w-full sm:w-64 shadow-sm">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          </div>
         </div>
       </div>
-    </nav>
 
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-      <div class="flex flex-col items-center justify-center text-center">
-        <h2 id="group-title" class="text-3xl font-bold mb-2 text-gray-800">Đang tải...</h2>
-        <p id="group-description" class="text-gray-600"></p>
+      <div x-show="loading.employees" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <template x-for="i in 8" :key="i">
+          <div class="bg-white p-4 rounded-xl shadow-lg flex flex-col gap-3 animate-pulse">
+            <div class="w-full bg-gray-200 rounded-lg" style="aspect-ratio: 4/5;"></div>
+            <div class="h-5 bg-gray-300 rounded w-3/4 mt-2"></div>
+            <div class="h-4 bg-gray-300 rounded w-1/2"></div>
+          </div>
+        </template>
       </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto">
-        <div class="relative w-full">
-          <input type="text" id="search-input" placeholder="Tìm thành viên..." class="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                   transition-all duration-200 w-full sm:w-64">
-          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+
+      <div x-show="!loading.employees && filteredEmployees.length > 0 && !apiError.employees"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
+        <template x-for="employee in filteredEmployees" :key="employee.id">
+          <div @click="viewEmployeeDetail(employee.nickname)"
+            class="member-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer group">
+            <div class="relative">
+              <img :src="employee.avatarInCategory || 'https://via.placeholder.com/400x500?text=No+Image'"
+                :alt="employee.nickname" loading="lazy" class="w-full h-auto object-cover" style="aspect-ratio: 4/5;">
+              <div class="member-social absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent
+                          p-3 flex justify-center gap-x-4">
+                <a x-show="employee.facebook" :href="employee.facebook" target="_blank" @click.stop
+                  class="text-white hover:text-blue-400 transition-colors text-xl"><i class="fab fa-facebook-f"></i></a>
+                <a x-show="employee.twitter" :href="employee.twitter" target="_blank" @click.stop
+                  class="text-white hover:text-sky-400 transition-colors text-xl"><i class="fab fa-twitter"></i></a>
+                <a x-show="employee.github" :href="employee.github" target="_blank" @click.stop
+                  class="text-white hover:text-gray-400 transition-colors text-xl"><i class="fab fa-github"></i></a>
+              </div>
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-lg font-semibold text-gray-900 truncate" x-text="employee.nickname"></h3>
+              <p class="text-sm text-blue-600 font-medium" x-text="employee.role"></p>
+              <p class="text-xs text-gray-500 mt-1 capitalize"
+                x-text="getCategoryNameByTrueId(employee.trueCategoryId)"></p>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div x-show="!loading.employees && filteredEmployees.length === 0 && !apiError.employees"
+        class="text-center py-12">
+        <i class="fas fa-user-slash text-5xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl font-medium text-gray-500">Không tìm thấy thành viên nào</h3>
+        <p class="text-gray-400 mt-2" x-show="searchTerm !== ''">Thử tìm kiếm với từ khóa khác hoặc đổi danh mục.</p>
+        <p class="text-gray-400 mt-2"
+          x-show="searchTerm === '' && selectedCategoryId !== '' && allEmployees.length > 0">Chưa có thành viên nào
+          trong danh mục này.</p>
+        <p class="text-gray-400 mt-2"
+          x-show="searchTerm === '' && selectedCategoryId === '' && allEmployees.length === 0 && !loading.employees && !apiError.employees">
+          Hệ thống chưa có dữ liệu thành viên.
+        </p>
+      </div>
+      <div x-show="apiError.employees && !loading.employees" class="text-center py-12 text-red-500">
+        <i class="fas fa-exclamation-triangle text-5xl mb-4"></i>
+        <p x-text="apiError.employees"></p>
+        <button @click="loadAndProcessEmployees(true)"
+          class="mt-4 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600">Thử lại</button>
+      </div>
+    </div>
+    <div x-show="currentView === 'detail'" x-cloak>
+      <button @click="navigateToListView()"
+        class="mb-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> Quay lại danh sách
+      </button>
+
+      <div x-show="loading.employeeDetail" class="text-center py-10 text-gray-500">
+        <i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i>
+        <p class="mt-2">Đang tải thông tin chi tiết...</p>
+      </div>
+
+      <template x-if="!loading.employeeDetail && selectedEmployee">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+          <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+            <img :src="selectedEmployee.avatarInProfile || 'https://via.placeholder.com/300x300?text=No+Avatar'"
+              :alt="selectedEmployee.nickname"
+              class="w-48 h-48 md:w-64 md:h-64 rounded-full object-cover shadow-lg border-4 border-white">
+            <div class="flex-1 text-center md:text-left">
+              <h1 class="text-3xl sm:text-4xl font-bold text-blue-700" x-text="selectedEmployee.nickname"></h1>
+              <p class="text-lg text-gray-600 mt-1" x-text="selectedEmployee.role"></p>
+              <p class="text-md text-gray-500 capitalize"
+                x-text="'Nhóm: ' + getCategoryNameByTrueId(selectedEmployee.trueCategoryId)"></p>
+              <p class="text-sm text-gray-500" x-show="selectedEmployee.joinYear"
+                x-text="'Tham gia từ năm: ' + selectedEmployee.joinYear"></p>
+
+              <div class="mt-4 flex justify-center md:justify-start space-x-4">
+                <a x-show="selectedEmployee.facebook" :href="selectedEmployee.facebook" target="_blank"
+                  class="text-gray-500 hover:text-blue-600 text-2xl transition-colors"><i
+                    class="fab fa-facebook-square"></i></a>
+                <a x-show="selectedEmployee.twitter" :href="selectedEmployee.twitter" target="_blank"
+                  class="text-gray-500 hover:text-sky-500 text-2xl transition-colors"><i
+                    class="fab fa-twitter-square"></i></a>
+                <a x-show="selectedEmployee.github" :href="selectedEmployee.github" target="_blank"
+                  class="text-gray-500 hover:text-gray-800 text-2xl transition-colors"><i
+                    class="fab fa-github-square"></i></a>
+                <a x-show="selectedEmployee.pixiv" :href="selectedEmployee.pixiv" target="_blank"
+                  class="text-gray-500 hover:text-blue-400 text-2xl transition-colors"><i
+                    class="fab fa-pinterest-square"></i> </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t">
+            <h3 class="text-xl font-semibold text-gray-800 mb-1">Giới thiệu:</h3>
+            <p class="text-gray-700 leading-relaxed prose"
+              x-html="selectedEmployee.description || 'Chưa có mô tả chi tiết.'"></p>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-1">Câu cửa miệng:</h3>
+            <p class="text-gray-700 italic" x-text="selectedEmployee.catchphrase || 'Không có thông tin.'"></p>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-1">Sở thích:</h3>
+            <p class="text-gray-700" x-text="selectedEmployee.hobbies || 'Không có thông tin.'"></p>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Huy hiệu:</h3>
+            <div class="flex flex-wrap gap-3 items-center"
+              x-show="selectedEmployee.fullBadgesData && selectedEmployee.fullBadgesData.length > 0">
+              <template x-for="badge in selectedEmployee.fullBadgesData" :key="badge.id || badge.name">
+                <span class="px-3 py-1.5 rounded-full text-sm font-medium shadow-sm flex items-center"
+                  :style="{ backgroundColor: badge.color || '#E5E7EB', color: getContrastingTextColor(badge.color || '#E5E7EB') }">
+                  <span x-text="badge.emoji ? badge.emoji + ' ' : ''" class="mr-1"></span>
+                  <span x-text="badge.name"></span>
+                </span>
+              </template>
+            </div>
+            <p x-show="!selectedEmployee.fullBadgesData || selectedEmployee.fullBadgesData.length === 0"
+              class="text-gray-500 mt-2">
+              Thành viên này chưa có huy hiệu nào.
+            </p>
+          </div>
         </div>
+      </template>
+
+      <div x-show="!loading.employeeDetail && !selectedEmployee" class="text-center py-10 ">
+        <i class="fas fa-exclamation-circle text-4xl mb-3"
+          :class="apiError.employeeDetail ? 'text-red-500' : 'text-gray-400'"></i>
+        <p :class="apiError.employeeDetail ? 'text-red-600' : 'text-gray-500'"
+          x-text="apiError.employeeDetail || 'Không tìm thấy thông tin thành viên này.'"></p>
+        <button x-show="apiError.employeeDetail" @click="retryFetchEmployeeDetail()"
+          class="mt-4 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600">Thử lại</button>
       </div>
-    </div>
-
-    <div id="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-      <!-- Skeleton loading item -->
-      <div class="flex flex-col gap-2 animate-pulse">
-        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
-        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
-        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
-      </div>
-
-      <div class="flex flex-col gap-2 animate-pulse">
-        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
-        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
-        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
-      </div>
-
-      <div class="flex flex-col gap-2 animate-pulse">
-        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
-        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
-        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
-      </div>
-
-      <div class="flex flex-col gap-2 animate-pulse">
-        <div class="w-full bg-gray-200 rounded-md" style="aspect-ratio: 4/5;"></div>
-        <div class="h-4 bg-gray-300 rounded w-3/4"></div>
-        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
-      </div>
-    </div>
-
-    <div id="group-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 hidden">
-      <!-- Member cards will be inserted here -->
-    </div>
-
-    <div id="no-results" class="text-center py-12 hidden">
-      <i class="fas fa-user-slash text-4xl text-gray-300 mb-4"></i>
-      <h3 class="text-xl font-medium text-gray-500">Không tìm thấy thành viên nào</h3>
-      <p class="text-gray-400 mt-2">Thử tìm kiếm với từ khóa khác</p>
     </div>
   </main>
 
   <script>
-    // Sample data - in real app this would come from API
-    const params = new URLSearchParams(window.location.search);
-    const group = params.get('group') || 'a';
+    const API_BASE_URL = 'https://sonic.worldlotho.com/api/v1';
 
-    const groupData = {
-      a: {
-        title: "🌟 Nhóm Lãnh Đạo",
-        description: "Đội ngũ quản lý và định hướng chiến lược",
-        members: [
-          {
-            name: "Nguyễn Văn A",
-            role: "Trưởng nhóm",
-            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
-            social: {
-              facebook: "#",
-              twitter: "#",
-              linkedin: "#"
+    function staffApp() {
+      return {
+        _initialized: false,
+        currentView: 'list',
+        allEmployees: [],
+        categories: [],
+        allBadges: [],
+        selectedEmployee: null,
+        selectedCategoryId: '',
+        currentEmployeeIdentifier: null,
+        searchTerm: '',
+
+        loading: {
+          initialSetup: true,
+          employees: false, // *** KHỞI TẠO LÀ FALSE ***
+          employeeDetail: false,
+        },
+        apiError: { /* ... như cũ ... */ },
+
+        async initApp() {
+          if (this._initialized) {
+            console.warn('Alpine: initApp called again, skipping.');
+            return;
+          }
+          this._initialized = true;
+          console.log('Alpine: Staff App Initializing (Actual Run)...');
+          this.loading.initialSetup = true;
+
+          try {
+            await Promise.allSettled([this.loadCategories(), this.loadAllBadges()]);
+          } finally {
+            this.loading.initialSetup = false;
+          }
+          await this.handleInitialURL();
+          window.addEventListener('popstate', async () => await this.handleInitialURL());
+          console.log('Alpine: Init completed.');
+        },
+
+        async handleInitialURL() {
+          console.log('Alpine: Handling URL:', window.location.pathname + window.location.search);
+          const urlParams = new URLSearchParams(window.location.search);
+          const pathParts = window.location.pathname.toLowerCase().split('/').filter(Boolean);
+
+          this.selectedEmployee = null;
+          this.apiError.employeeDetail = null;
+          this.currentEmployeeIdentifier = null;
+
+          let needsEmployeeLoad = (this.allEmployees.length === 0 && !this.apiError.employees);
+
+          if (urlParams.has('category')) {
+            this.currentView = 'list';
+            const categoryTitleFromUrl = decodeURIComponent(urlParams.get('category'));
+            if (!this.loading.initialSetup) {
+              const foundCategory = this.categories.find(c => c.title && c.title.toLowerCase() === categoryTitleFromUrl.toLowerCase());
+              this.selectedCategoryId = foundCategory ? foundCategory.id : '';
+              if (!foundCategory && categoryTitleFromUrl) {
+                const cleanUrl = new URL(window.location.origin + (pathParts.length > 0 && !pathParts[0].endsWith('.html') ? `/staff` : window.location.pathname));
+                history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search);
+              }
             }
-          },
-          {
-            name: "Trần Thị B",
-            role: "Phó nhóm",
-            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
-            social: {
-              facebook: "#",
-              twitter: "#",
-              linkedin: "#"
+          } else if (pathParts.length === 2 && pathParts[0] === 'staff') {
+            const nicknameFromUrl = decodeURIComponent(pathParts[1]);
+            this.currentView = 'detail';
+            this.currentEmployeeIdentifier = nicknameFromUrl;
+          } else if ((pathParts.length === 1 && (pathParts[0] === 'staff' || pathParts[0].endsWith('.html'))) || pathParts.length === 0) {
+            this.currentView = 'list';
+            this.selectedCategoryId = '';
+          } else {
+            history.replaceState({}, "Danh sách", "/staff");
+            this.currentView = 'list';
+            this.selectedCategoryId = '';
+          }
+
+          if (needsEmployeeLoad) {
+            console.log('Alpine: `needsEmployeeLoad` is true, setting loading.employees = true and calling loadAndProcessEmployees.');
+            this.loading.employees = true; // *** SET TRUE NGAY TRƯỚC KHI GỌI ***
+            await this.loadAndProcessEmployees();
+          } else if (this.allEmployees.length > 0 && this.loading.employees) {
+            // Nếu không cần load (đã có data) nhưng cờ loading vẫn true (ít xảy ra với logic mới)
+            this.loading.employees = false;
+          }
+
+
+          if (this.currentView === 'detail' && this.currentEmployeeIdentifier) {
+            if (this.allEmployees.length === 0 && !this.loading.employees && !this.apiError.employees) {
+              console.log("Alpine: Detail view, but no employees and not loading. Forcing load.");
+              this.loading.employees = true; // Set loading cho employees
+              await this.loadAndProcessEmployees(true); // Force load
             }
-          },
-          {
-            name: "Lê Văn C",
-            role: "Quản lý dự án",
-            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
-            social: {
-              facebook: "#",
-              twitter: "#",
-              linkedin: "#"
-            }
-          },
-          {
-            name: "Phạm Thị D",
-            role: "Quản lý nhân sự",
-            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
-            social: {
-              facebook: "#",
-              twitter: "#",
-              linkedin: "#"
-            }
-          },
-          {
-            name: "Hoàng Văn E",
-            role: "Quản lý tài chính",
-            avatar: "https://pub-82f905688b7e49ccba2e144698e10197.r2.dev/avatar/dev/miho.webp",
-            social: {
-              facebook: "#",
-              twitter: "#",
-              linkedin: "#"
+            if (!this.apiError.employees) {
+              await this.viewEmployeeDetail(this.currentEmployeeIdentifier, false);
+            } else {
+              this.loading.employeeDetail = false;
+              this.apiError.employeeDetail = "Không thể hiển thị chi tiết do lỗi tải danh sách chung."
             }
           }
-        ]
-      },
-    };
+          console.log(`Alpine: URL Handled. View: ${this.currentView}, SelCatID: ${this.selectedCategoryId}, EmpID: ${this.currentEmployeeIdentifier}, AllEmps: ${this.allEmployees.length}, LoadEmps: ${this.loading.employees}`);
+        },
 
-    // DOM elements
-    const titleEl = document.getElementById('group-title');
-    const descEl = document.getElementById('group-description');
-    const loadingEl = document.getElementById('loading');
-    const contentEl = document.getElementById('group-content');
-    const noResultsEl = document.getElementById('no-results');
-    const searchInput = document.getElementById('search-input');
+        async loadCategories() { /* ... như cũ, nhưng không set loading.initialSetup ... */
+          console.log("Alpine: Loading categories...");
+          this.apiError.categories = null;
+          // this.loading.categories = true; // Không cần cờ riêng này nữa nếu initialSetup bao gồm nó
+          try {
+            const response = await fetch(`${API_BASE_URL}/categories`);
+            if (!response.ok) throw new Error(`Không thể tải danh mục (Lỗi ${response.status})`);
+            const data = await response.json();
+            this.categories = data.data || [];
+          } catch (error) {
+            this.apiError.categories = error.message; this.categories = [];
+          } finally {
+            // this.loading.categories = false;
+          }
+        },
 
-    // Render group
+        async loadAndProcessEmployees(force = false) {
+          // Bỏ điều kiện if (this.loading.employees && !force) ở đầu
+          // vì hàm gọi (handleInitialURL) đã set loading.employees = true trước khi gọi
+          if (this.allEmployees.length > 0 && !force) {
+            console.log("Alpine: loadAndProcessEmployees - Employees already loaded and not forcing. Setting loading flag false.");
+            this.loading.employees = false; // QUAN TRỌNG: Nếu đã có và không force, đảm bảo cờ loading tắt
+            return;
+          }
 
-    function renderGroup(groupKey) {
-      const group = groupData[groupKey] || groupData.a;
+          console.log("Alpine: Attempting to load and process employees (force=" + force + ")...");
+          // loading.employees đã được set true bởi hàm gọi nó, hoặc là true từ đầu nếu logic thay đổi
+          this.apiError.employees = null;
+          try {
+            const response = await fetch(`${API_BASE_URL}/employees`);
+            if (!response.ok) throw new Error(`Không thể tải danh sách thành viên (Lỗi ${response.status})`);
+            const data = await response.json();
+            const rawEmployees = data.data || [];
 
-      titleEl.textContent = group.title || "Tên nhóm không xác định";
-      descEl.textContent = group.description || "";
+            if (this.categories.length === 0 && !this.loading.initialSetup && !this.apiError.categories) {
+              console.warn("Alpine: Categories array is empty when processing employees.");
+            }
 
-      contentEl.innerHTML = '';
-      loadingEl.classList.remove('hidden');
-      contentEl.classList.add('hidden');
-      noResultsEl.classList.add('hidden');
-
-      setTimeout(() => {
-        loadingEl.classList.add('hidden');
-
-        if (!group.members || group.members.length === 0) {
-          noResultsEl.classList.remove('hidden');
-          contentEl.classList.add('hidden');
-          return;
-        }
-
-        group.members.forEach(member => {
-          const card = document.createElement('div');
-          card.className = `
-        member-card flex flex-col group transition-all duration-300
-      `;
-
-          // Avatar gốc không bị bóp méo, giữ nguyên kích thước
-          const avatarWrapper = document.createElement('div');
-          avatarWrapper.className = 'relative w-full';
-
-          const avatarImg = document.createElement('img');
-          avatarImg.src = member.avatar;
-          avatarImg.alt = member.name;
-          avatarImg.loading = 'lazy';
-          avatarImg.className = 'w-full h-auto'; // Hiển thị full chiều rộng, tự scale chiều cao
-          // Không dùng object-cover, không ép tỷ lệ
-
-          const socialDiv = document.createElement('div');
-          socialDiv.className = `
-        absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent
-        px-3 py-2 flex justify-center gap-3 opacity-0 group-hover:opacity-100
-        transition-opacity duration-300
-      `;
-
-          if (member.social) {
-            Object.entries(member.social).forEach(([platform, url]) => {
-              const link = document.createElement('a');
-              link.href = url;
-              link.target = '_blank';
-              link.className = 'text-white text-lg hover:text-blue-300';
-              link.innerHTML = `<i class="fab fa-${platform}"></i>`;
-              socialDiv.appendChild(link);
+            this.allEmployees = rawEmployees.map(emp => {
+              const categoryObject = this.categories.find(
+                cat => cat.title && emp.category && cat.title.toLowerCase() === emp.category.toLowerCase()
+              );
+              return { ...emp, trueCategoryId: categoryObject ? categoryObject.id : null };
             });
+          } catch (error) {
+            this.apiError.employees = error.message; this.allEmployees = [];
+          } finally {
+            this.loading.employees = false; // QUAN TRỌNG: Luôn set false ở cuối
+            console.log("Alpine: Finished loading employees. Loading state:", this.loading.employees, "Count:", this.allEmployees.length);
           }
+        },
 
-          avatarWrapper.appendChild(avatarImg);
-          avatarWrapper.appendChild(socialDiv);
+        async loadAllBadges() { /* ... như cũ, nhưng không set loading.initialSetup ... */
+          console.log("Alpine: Loading all badges...");
+          this.apiError.badges = null;
+          try {
+            const response = await fetch(`${API_BASE_URL}/badges`);
+            if (!response.ok) throw new Error(`Không thể tải huy hiệu (Lỗi ${response.status})`);
+            const data = await response.json();
+            this.allBadges = data.data || [];
+          } catch (error) {
+            this.apiError.badges = error.message; this.allBadges = [];
+          }
+        },
 
-          const infoDiv = document.createElement('div');
-          infoDiv.className = 'mt-2 text-center';
+        async fetchEmployeeByIdentifier(identifier) { /* ... như cũ ... */
+          console.log(`Alpine: Fetching detail for employee Identifier: ${identifier}`);
+          this.loading.employeeDetail = true;
+          this.selectedEmployee = null;
+          this.apiError.employeeDetail = null;
+          try {
+            if (this.allEmployees.length === 0 && !this.loading.employees && !this.apiError.employees) {
+              console.log("Alpine: fetchEmployeeByIdentifier - allEmployees empty, loading them first...");
+              this.loading.employees = true; // Set loading cho employees
+              await this.loadAndProcessEmployees(true); // Force load
+            }
+            if (this.apiError.employees) {
+              throw new Error("Không thể tìm thành viên do lỗi tải danh sách.");
+            }
 
-          const nameEl = document.createElement('h3');
-          nameEl.textContent = member.name;
-          nameEl.className = 'text-base font-semibold text-gray-900 truncate';
+            let foundEmployee = this.allEmployees.find(emp => emp.nickname && emp.nickname.toLowerCase() === identifier.toLowerCase());
 
-          const roleEl = document.createElement('p');
-          roleEl.textContent = member.role;
-          roleEl.className = 'text-sm text-gray-500';
+            if (foundEmployee) {
+              this.selectedEmployee = JSON.parse(JSON.stringify(foundEmployee));
+              if (this.selectedEmployee.badges && typeof this.selectedEmployee.badges === 'string') {
+                const badgeNamesOrIds = this.selectedEmployee.badges.split(',').map(b => b.trim());
+                this.selectedEmployee.fullBadgesData = badgeNamesOrIds.map(nameOrId => {
+                  const badgeInfo = this.allBadges.find(b => b.id === nameOrId || (b.name && b.name.toLowerCase() === nameOrId.toLowerCase()));
+                  return badgeInfo ? badgeInfo : { name: nameOrId.trim(), color: '#D1D5DB', emoji: '❔', id: `unknown-badge-${nameOrId}` };
+                }).filter(b => b && b.name);
+              } else {
+                this.selectedEmployee.fullBadgesData = [];
+              }
+            } else {
+              this.apiError.employeeDetail = `Không tìm thấy thành viên "${identifier}".`;
+            }
+          } catch (error) {
+            this.apiError.employeeDetail = error.message || "Lỗi khi tải thông tin chi tiết.";
+          } finally {
+            this.loading.employeeDetail = false;
+          }
+        },
+        retryFetchEmployeeDetail() { /* ... như cũ ... */
+          if (this.currentEmployeeIdentifier) {
+            this.fetchEmployeeByIdentifier(this.currentEmployeeIdentifier);
+          }
+        },
 
-          infoDiv.appendChild(nameEl);
-          infoDiv.appendChild(roleEl);
+        get filteredEmployees() { /* ... như cũ, nhưng đảm bảo this.loading.employees đúng ... */
+          if (this.loading.employees) return []; // Nếu đang tải employees, trả về mảng rỗng để skeleton hiện
+          // Các logic lọc khác giữ nguyên
+          let filtered = this.allEmployees;
+          if (this.selectedCategoryId) {
+            filtered = filtered.filter(emp => emp.trueCategoryId === this.selectedCategoryId);
+          }
+          if (this.searchTerm.trim() !== '') {
+            const lowerSearchTerm = this.searchTerm.toLowerCase();
+            filtered = filtered.filter(emp =>
+              (emp.nickname && emp.nickname.toLowerCase().includes(lowerSearchTerm)) ||
+              (emp.role && emp.role.toLowerCase().includes(lowerSearchTerm))
+            );
+          }
+          return filtered;
+        },
 
-          card.appendChild(avatarWrapper);
-          card.appendChild(infoDiv);
+        selectCategory(categoryId) { /* ... như cũ ... */
+          this.selectedCategoryId = categoryId;
+          this.searchTerm = '';
+          const categoryObject = this.categories.find(cat => cat.id === categoryId);
+          const categoryTitleForUrl = categoryObject ? encodeURIComponent(categoryObject.title) : '';
+          const url = new URL(window.location.origin + '/staff');
+          if (categoryTitleForUrl) {
+            url.searchParams.set('category', categoryTitleForUrl);
+          }
+          const newRelativeUrl = url.pathname + url.search;
+          if (this.currentView === 'list' && (window.location.pathname + window.location.search) !== newRelativeUrl) {
+            history.pushState({ selectedCategoryId: this.selectedCategoryId }, '', newRelativeUrl);
+          }
+        },
 
-          card.dataset.search = `${member.name.toLowerCase()} ${member.role.toLowerCase()}`;
+        getCategoryNameByTrueId(trueCategoryId) { /* ... như cũ ... */
+          if (!trueCategoryId) return 'Chưa phân loại';
+          if (this.loading.initialSetup && this.categories.length === 0 && !this.apiError.categories) return 'Đang xử lý...';
+          if (this.apiError.categories) return 'Lỗi tải category';
+          const category = this.categories.find(cat => cat.id === trueCategoryId);
+          return category ? category.title : 'Không xác định';
+        },
 
-          contentEl.appendChild(card);
+        currentCategoryTitle() { /* ... như cũ ... */
+          if (this.loading.initialSetup && this.categories.length === 0 && !this.apiError.categories) return 'Đang tải...';
+          if (this.apiError.categories) return 'Lỗi tải danh mục';
+          if (this.selectedCategoryId === '') return 'Tất cả thành viên';
+          const catName = this.getCategoryNameByTrueId(this.selectedCategoryId);
+          return (catName && !['Chưa phân loại', 'Không xác định', 'Đang tải...', 'Lỗi tải category'].includes(catName)) ? `Nhóm ${catName}` : 'Tất cả thành viên';
+        },
+        currentCategoryDescription() { /* ... như cũ ... */
+          if (this.loading.initialSetup && this.categories.length === 0) return '';
+          if (!this.selectedCategoryId) return 'Danh sách toàn bộ thành viên trong team.';
+          const category = this.categories.find(cat => cat.id === this.selectedCategoryId);
+          return category ? (category.body || `Thành viên thuộc nhóm ${category.title}.`) : '';
+        },
 
-        });
+        async viewEmployeeDetail(nickname, updateHistory = true) { // identifier giờ là nickname
+          console.log(`Alpine (List Page): Navigating to detail page for employee Nickname: ${nickname}`);
+          if (nickname) {
+            // Điều hướng trình duyệt đến trang chi tiết mới
+            window.location.href = `staff-detail.html?nickname=${encodeURIComponent(nickname)}`;
+          } else {
+            console.error("Alpine (List Page): Nickname is undefined, cannot navigate.");
+          }
+          // Không cần thay đổi currentView hay pushState ở đây nữa vì là full navigation
+        },
+        navigateToListView() { /* ... như cũ ... */
+          this.currentView = 'list';
+          this.selectedEmployee = null;
+          this.apiError.employeeDetail = null;
+          this.currentEmployeeIdentifier = null;
+          const url = new URL(window.location.origin + '/staff');
+          const currentCategoryObject = this.categories.find(cat => cat.id === this.selectedCategoryId);
+          if (currentCategoryObject) {
+            url.searchParams.set('category', encodeURIComponent(currentCategoryObject.title));
+          }
+          const newRelativeUrl = url.pathname + url.search;
+          if ((window.location.pathname + window.location.search) !== newRelativeUrl) {
+            history.pushState({ selectedCategoryId: this.selectedCategoryId }, 'Danh sách', newRelativeUrl);
+          }
+        },
 
-        contentEl.classList.remove('hidden');
-      }, 800);
-    }
-
-    searchInput.addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      const cards = contentEl.querySelectorAll('.member-card');
-      let visibleCount = 0;
-
-      cards.forEach(card => {
-        const searchText = card.dataset.search || '';
-        if (searchText.includes(searchTerm)) {
-          card.classList.remove('hidden');
-          visibleCount++;
-        } else {
-          card.classList.add('hidden');
+        getContrastingTextColor(hexColor) { /* ... như cũ ... */
+          if (!hexColor) return '#1f2937';
+          let color = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
+          if (color.length === 3) color = color.split('').map(char => char + char).join('');
+          if (color.length !== 6) return '#1f2937';
+          const r = parseInt(color.substring(0, 2), 16);
+          const g = parseInt(color.substring(2, 4), 16);
+          const b = parseInt(color.substring(4, 6), 16);
+          const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+          return (yiq >= 135) ? '#111827' : '#FFFFFF';
         }
-      });
-
-      if (visibleCount === 0 && searchTerm.length > 0) {
-        noResultsEl.classList.remove('hidden');
-      } else {
-        noResultsEl.classList.add('hidden');
       }
-    });
-
-
-    // Initial render
-    renderGroup(group);
-
-    // Handle group change via URL params
-    window.addEventListener('popstate', () => {
-      const params = new URLSearchParams(window.location.search);
-      const newGroup = params.get('group') || 'a';
-      renderGroup(newGroup);
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const currentGroup = urlParams.get("group");
-
-      document.querySelectorAll(".tab").forEach(el => {
-        if (el.dataset.group === currentGroup) {
-          el.classList.add("bg-blue-500", "text-white");
-          el.classList.remove("bg-gray-100", "text-gray-700");
-        }
-      });
-    });
-
+    }
   </script>
 </body>
 

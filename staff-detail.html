@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết thành viên</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Ẩn thanh cuộn nhưng vẫn giữ cuộn */
+        .scrollable-info {
+            overflow-y: scroll;
+            /* Cho phép cuộn theo chiều dọc */
+            scrollbar-width: thin;
+            /* Trên Firefox: thanh cuộn mảnh */
+            scrollbar-color: transparent transparent;
+            /* Trên Firefox: ẩn màu của thanh cuộn */
+        }
+
+        /* Ẩn thanh cuộn trên các trình duyệt Webkit (Chrome, Safari) */
+        .scrollable-info::-webkit-scrollbar {
+            display: none;
+            /* Ẩn thanh cuộn */
+        }
+    </style>
+</head>
+
+<body class="bg-white text-zinc-800" x-data="employeeDetailApp()" x-init="init()">
+
+    <div x-show="loading.employee || loading.initialData"
+        class="min-h-[calc(100vh-68px)] flex flex-col items-center justify-center text-gray-500 fixed inset-0 bg-white/50 backdrop-blur-sm z-50"
+        x-cloak>
+        <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
+        <p class="mt-3 text-lg">Đang tải dữ liệu thành viên...</p>
+    </div>
+
+    <div x-show="!loading.employee && apiError"
+        class="min-h-[calc(100vh-68px)] flex flex-col items-center justify-center text-red-500 px-6 text-center fixed inset-0 bg-white/50 backdrop-blur-sm z-50"
+        x-cloak>
+        <i class="fas fa-exclamation-triangle text-5xl mb-4"></i>
+        <h2 class="text-2xl font-semibold mb-2">Không thể tải thông tin</h2>
+        <p x-text="apiError"></p>
+        <button @click="fetchEmployeeData(true)"
+            class="mt-4 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600">Thử lại</button>
+        <a href="/staff" class="mt-3 text-blue-600 hover:underline">Quay lại trang danh sách</a>
+    </div>
+
+    <template x-if="!loading.employee && employee && !apiError">
+        <section
+            class="w-full min-h-screen px-6 py-16 md:py-24 bg-gradient-to-b from-purple-100 via-pink-100 to-violet-200">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+
+                <div
+                    class="relative w-full flex items-center justify-center md:sticky md:top-[calc(var(--header-height,68px)+1.5rem)]">
+                    <div
+                        class="w-72 h-72 md:w-[400px] md:h-[400px] overflow-hidden relative avatar-container rounded-xl shadow-xl">
+                        <img :src="employee.avatarInProfile || 'https://via.placeholder.com/600x600?text=No+Avatar'"
+                            :alt="employee.nickname" class="w-full h-full object-cover clip-avatar rounded-xl" />
+                    </div>
+                </div>
+
+                <div class="space-y-6 md:scrollable-info md:pr-2 md:pb-16">
+                    <div class="space-y-2">
+                        <h1 class="text-4xl font-bold text-zinc-900" x-text="employee.nickname"></h1>
+                        <h2 class="text-lg font-medium text-indigo-600"
+                            x-text="employee.responsibilities || 'Chưa cập nhật'"></h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-zinc-600">
+                        <div>
+                            <span class="block text-zinc-500">Ngày sinh</span>
+                            <span class="font-medium text-emerald-600"
+                                x-text="employee.birthday ? employee.birthday : 'Chưa cập nhật'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-zinc-500">Tham gia từ</span>
+                            <span class="font-medium text-cyan-600"
+                                x-text="employee.joinYear ? employee.joinYear : 'Chưa cập nhật'"></span>
+                        </div>
+                        <div class="sm:col-span-2" x-show="employee.catchphrase">
+                            <span class="block text-zinc-500">Catchphrase</span>
+                            <span class="italic text-violet-700 font-semibold" x-text="employee.catchphrase"></span>
+                        </div>
+                        <div class="sm:col-span-2" x-show="employee.trueCategoryId">
+                            <span class="block text-zinc-500">Nhóm</span>
+                            <span class="font-medium text-purple-600 capitalize"
+                                x-text="getCategoryNameByTrueId(employee.trueCategoryId)"></span>
+                        </div>
+                        <div class="sm:col-span-2"
+                            x-show="employee.fullBadgesData && employee.fullBadgesData.length > 0">
+                            <span class="block text-zinc-500 pb-1">Huy hiệu</span>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="badge in employee.fullBadgesData" :key="badge.id || badge.name">
+                                    <div class="relative group">
+                                        <span
+                                            class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs sm:text-sm shadow-sm cursor-pointer"
+                                            :class="[getBadgeTailwindClasses(badge.color).bg, getBadgeTailwindClasses(badge.color).text]">
+                                            <span x-text="badge.emoji ? badge.emoji : ''" class="text-sm"></span>
+                                            <p class="whitespace-nowrap ml-0.5" x-text="badge.name"></p>
+                                        </span>
+                                        <div x-show="badge.description"
+                                            class="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-max max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200"
+                                            x-text="badge.description">
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-lg leading-relaxed text-zinc-700 border-l-4 border-pink-400 pl-4 py-1"
+                        x-show="employee.description">
+                        <p x-html="employee.description"></p>
+                    </div>
+
+                    <div class="text-lg leading-relaxed text-zinc-700 border-l-4 border-emerald-400 pl-4 py-1"
+                        x-show="employee.hobbies">
+                        <span class="block text-zinc-500 text-sm pb-0.5">Sở thích</span>
+                        <p x-text="employee.hobb                <div class="f>x flex-wrap gap-4 pt-4 text-sm font-medium">
+                        <a :href="employee.github || '#'" target="_blank"
+                            class="text-indigo-600 hover:underline hover:text-pink-500 transition"
+                            :class="{'opacity-50 pointer-events-none': !employee.github}">GitHub</a>
+                        <a :href="employee.facebook || '#'" target="_blank"
+                            class="text-indigo-600 hover:underline hover:text-pink-500 transition"
+                            :class="{'opacity-50 pointer-events-none': !employee.facebook}">Facebook</a>
+                        <a :href="employee.twitter || '#'" target="_blank"
+                            class="text-indigo-600 hover:underline hover:text-pink-500 transition"
+                            :class="{'opacity-50 pointer-events-none': !employee.twitter}">Twitter</a>
+                        <a :href="employee.pixiv || '#'" target="_blank"
+                            class="text-indigo-600 hover:underline hover:text-pink-500 transition"
+                            :class="{'opacity-50 pointer-events-none': !employee.pixiv}">Pixiv</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <script>
+        const API_BASE_URL = 'https://sonic.worldlotho.com/api/v1';
+
+        function employeeDetailApp() {
+            return {
+                employeeIdentifier: null,
+                employee: null,
+                categories: [],
+                allBadges: [],
+                loading: {
+                    initialData: true,
+                    employee: true
+                },
+                apiError: null,
+
+                async init() {
+                    console.log("Alpine Detail Page: Initializing...");
+                    const pathParts = window.location.pathname.toLowerCase().split('/').filter(Boolean);
+
+                    if (pathParts.length === 2 && pathParts[0] === 'staff') {
+                        this.employeeIdentifier = decodeURIComponent(pathParts[1]);
+                    } else {
+                        // Fallback nếu URL không đúng dạng /staff/nickname, thử tìm query param (dù _redirects đã xử lý path)
+                        const urlParams = new URLSearchParams(window.location.search);
+                        this.employeeIdentifier = urlParams.get('nickname');
+                    }
+
+                    if (!this.employeeIdentifier) {
+                        this.apiError = "Không tìm thấy thông tin định danh (nickname) thành viên trong URL.";
+                        this.loading.initialData = false;
+                        this.loading.employee = false;
+                        document.title = "Lỗi - Không tìm thấy thành viên";
+                        console.error("Alpine Detail Page:", this.apiError);
+                        return;
+                    }
+                    document.title = `Đang tải... ${this.employeeIdentifier}`;
+
+                    try {
+                        // Tải categories và badges song song
+                        const dataPromises = [this.loadCategories(), this.loadAllBadges()];
+                        const results = await Promise.allSettled(dataPromises);
+                        results.forEach((result, index) => {
+                            if (result.status === 'rejected') {
+                                const type = index === 0 ? 'categories' : 'badges';
+                                this.apiError = this.apiError || `Lỗi tải ${type}: ${result.reason.message}`;
+                            }
+                        });
+                    } finally {
+                        this.loading.initialData = false;
+                    }
+
+                    if (this.apiError) { // Nếu lỗi tải categories/badges, có thể vẫn thử tải employee nhưng báo lỗi
+                        console.warn("Alpine Detail Page: Error loading categories/badges, proceeding to fetch employee data but some info might be missing.");
+                        // Không return ở đây, vẫn thử fetch employee
+                    }
+                    await this.fetchEmployeeData();
+                },
+
+                async loadData(propertyKey, url, typeName) {
+                    console.log(`Alpine Detail Page: Loading ${typeName}...`);
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error(`${typeName} API Error: ${response.status}`);
+                        const data = await response.json();
+                        this[propertyKey] = data.data || [];
+                        console.log(`Alpine Detail Page: ${typeName} loaded`, this[propertyKey].length);
+                    } catch (error) {
+                        console.error(`Alpine Detail Page: Error loading ${typeName}:`, error);
+                        this.apiError = this.apiError || error.message; // Giữ lỗi đầu tiên
+                        this[propertyKey] = [];
+                    }
+                },
+                async loadCategories() { await this.loadData('categories', `${API_BASE_URL}/categories`, 'Categories'); },
+                async loadAllBadges() { await this.loadData('allBadges', `${API_BASE_URL}/badges`, 'Badges'); },
+
+                async fetchEmployeeData(isRetry = false) {
+                    if (!isRetry) {
+                        console.log("Alpine Detail Page: Fetching employee data for nickname:", this.employeeIdentifier);
+                        this.loading.employee = true;
+                    }
+                    this.apiError = null; // Reset lỗi cụ thể của employee fetch
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/employees`);
+                        if (!response.ok) throw new Error(`Employees API Error: ${response.status}`);
+                        const data = await response.json();
+                        const allEmployeesRaw = data.data || [];
+
+                        let foundEmployee = allEmployeesRaw.find(emp =>
+                            emp.nickname && emp.nickname.toLowerCase() === this.employeeIdentifier.toLowerCase()
+                        );
+
+                        if (foundEmployee) {
+                            const categoryObject = this.categories.find(
+                                cat => cat.title && foundEmployee.category && cat.title.toLowerCase() === foundEmployee.category.toLowerCase()
+                            );
+                            foundEmployee.trueCategoryId = categoryObject ? categoryObject.id : null;
+
+                            if (foundEmployee.badges && typeof foundEmployee.badges === 'string') {
+                                const badgeNamesOrIds = foundEmployee.badges.split(',').map(b => b.trim());
+                                foundEmployee.fullBadgesData = badgeNamesOrIds.map(nameOrId => {
+                                    const badgeInfo = this.allBadges.find(b => b.id === nameOrId || (b.name && b.name.toLowerCase() === nameOrId.toLowerCase()));
+                                    return badgeInfo ? badgeInfo : { name: nameOrId.trim(), color: '#D1D5DB', emoji: '❔', id: `unknown-badge-${nameOrId}` };
+                                }).filter(b => b && b.name);
+                            } else {
+                                foundEmployee.fullBadgesData = [];
+                            }
+                            this.employee = foundEmployee;
+                            document.title = `Chi tiết: ${this.employee.nickname}`;
+                        } else {
+                            this.apiError = `Không tìm thấy thành viên với nickname: "${this.employeeIdentifier}"`;
+                            document.title = "Không tìm thấy thành viên";
+                        }
+                    } catch (error) {
+                        console.error('Alpine Detail Page: Error fetching employee data:', error);
+                        this.apiError = error.message || "Lỗi không xác định khi tải dữ liệu thành viên.";
+                        document.title = "Lỗi tải dữ liệu";
+                    } finally {
+                        this.loading.employee = false;
+                    }
+                },
+
+                getCategoryNameByTrueId(trueCategoryId) {
+                    if (!trueCategoryId) return 'Chưa phân loại';
+                    if (this.loading.initialData && this.categories.length === 0 && !this.apiError) return 'Đang xử lý...';
+                    if (this.apiError && this.categories.length === 0) return 'Lỗi category';
+                    const category = this.categories.find(cat => cat.id === trueCategoryId);
+                    return category ? category.title : 'Không xác định';
+                },
+
+                getContrastingTextColor(hexColor) {
+                    if (!hexColor) return '#1f2937';
+                    let color = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
+                    if (color.length === 3) color = color.split('').map(char => char + char).join('');
+                    if (color.length !== 6) return '#1f2937';
+                    const r = parseInt(color.substring(0, 2), 16);
+                    const g = parseInt(color.substring(2, 4), 16);
+                    const b = parseInt(color.substring(4, 6), 16);
+                    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                    return (yiq >= 135) ? '#111827' : '#FFFFFF';
+                },
+                getBadgeTailwindClasses(apiColorName) {
+                    if (!apiColorName) { // Màu mặc định nếu không có hoặc không khớp
+                        return { bg: 'bg-gray-100', text: 'text-gray-700' };
+                    }
+                    // Ánh xạ tên màu từ API sang các cặp class Tailwind
+                    // Bạn cần bổ sung các màu khác từ API badges của bạn vào đây
+                    const colorMap = {
+                        'red': { bg: 'bg-red-100', text: 'text-red-700' },
+                        'blue': { bg: 'bg-blue-100', text: 'text-blue-700' },
+                        'green': { bg: 'bg-green-100', text: 'text-green-700' },
+                        'yellow': { bg: 'bg-yellow-100', text: 'text-yellow-800' }, // Yellow text thường cần đậm hơn
+                        'indigo': { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+                        'purple': { bg: 'bg-purple-100', text: 'text-purple-700' },
+                        'pink': { bg: 'bg-pink-100', text: 'text-pink-700' },
+                        'gray': { bg: 'bg-gray-100', text: 'text-gray-700' },
+                        'emerald': { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+                        'rose': { bg: 'bg-rose-100', text: 'text-rose-700' },
+                        'amber': { bg: 'bg-amber-100', text: 'text-amber-700' },
+                        'fuchsia': { bg: 'bg-fuchsia-100', text: 'text-fuchsia-700' },
+                        'sky': { bg: 'bg-sky-100', text: 'text-sky-700' },
+                        'cyan': { bg: 'bg-cyan-100', text: 'text-cyan-700' },
+                        'stone': { bg: 'bg-stone-100', text: 'text-stone-700' },
+                        'zinc': { bg: 'bg-zinc-100', text: 'text-zinc-700' },
+                        'neutral': { bg: 'bg-neutral-100', text: 'text-neutral-700' }
+                        // Thêm các màu khác mà API badge của bạn có thể trả về,
+                        // ví dụ: 'orange', 'lime', 'teal', etc.
+                        // và chọn các class Tailwind tương ứng (ví dụ bg-orange-100 text-orange-700)
+                    };
+                    return colorMap[apiColorName.toLowerCase()] || { bg: 'bg-gray-200', text: 'text-gray-800' }; // Fallback
+                },
+            }
+        }
+    </script>
+</body>
+
+</html>

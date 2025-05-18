@@ -1,8 +1,6 @@
-# Cho phép client-side routing cho trang /staff
-# Bất kỳ URL nào bắt đầu bằng /staff/ (ví dụ: /staff/miho, /staff/sexgay)
-# sẽ được phục vụ bởi file /staff.html mà không thay đổi URL trên trình duyệt.
-/staff/* /staff.html    200
+# File: _redirects
 
-# (Không cần thêm các dòng khác cho các file tĩnh như index.html, groups.html, gallery.html
-# vì Cloudflare Pages sẽ tự động phục vụ chúng nếu chúng tồn tại.)
-# hito gay
+# Dòng này sẽ rewrite bất kỳ URL nào có dạng /staff/SOMENAME
+# sang file /employee-detail.html.
+# JavaScript trong employee-detail.html sau đó phải tự lấy SOMENAME từ path.
+/staff/:nickname  /staff-detail.html  200
