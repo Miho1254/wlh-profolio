@@ -110,34 +110,31 @@
                         </div>
                     </div>
 
-<!-- Phần description -->
-<div
-  class="text-lg leading-relaxed text-zinc-700 border-l-4 border-pink-400 pl-5 py-3 bg-pink-50 rounded-l-md shadow-sm"
-  x-show="employee.description"
-  x-transition:enter="transition ease-out duration-300"
-  x-transition:enter-start="opacity-0 transform -translate-x-2"
-  x-transition:enter-end="opacity-100 transform translate-x-0"
-  x-transition:leave="transition ease-in duration-200"
-  x-transition:leave-start="opacity-100 transform translate-x-0"
-  x-transition:leave-end="opacity-0 transform -translate-x-2"
->
-  <p x-html="employee.description"></p>
+                  <!-- Phần description -->
+<div class="text-base leading-relaxed text-zinc-700 border-l-4 border-pink-400 pl-4 pr-4 py-3 bg-pink-50 rounded-l-md"
+    x-show="employee.description" 
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform -translate-x-2"
+    x-transition:enter-end="opacity-100 transform translate-x-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform translate-x-0"
+    x-transition:leave-end="opacity-0 transform -translate-x-2">
+    <p class="m-0" x-html="employee.description"></p>
 </div>
 
 <!-- Phần hobbies -->
-<div
-  class="text-lg leading-relaxed text-zinc-700 border-l-4 border-green-400 pl-5 py-3 bg-pink-50 rounded-l-md shadow-sm mt-4"
-  x-show="employee.hobbies"
-  x-transition:enter="transition ease-out duration-300"
-  x-transition:enter-start="opacity-0 transform -translate-x-2"
-  x-transition:enter-end="opacity-100 transform translate-x-0"
-  x-transition:leave="transition ease-in duration-200"
-  x-transition:leave-start="opacity-100 transform translate-x-0"
-  x-transition:leave-end="opacity-0 transform -translate-x-2"
->
-  <span class="block text-zinc-500 text-sm font-semibold pb-1">Sở thích</span>
-  <p x-html="employee.hobbies"></p>
+<div class="text-base leading-relaxed text-zinc-700 border-l-4 border-green-400 pl-4 pr-4 py-3 bg-pink-50 rounded-l-md mt-4"
+    x-show="employee.hobbies" 
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform -translate-x-2"
+    x-transition:enter-end="opacity-100 transform translate-x-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform translate-x-0"
+    x-transition:leave-end="opacity-0 transform -translate-x-2">
+    <span class="block text-zinc-500 text-sm font-semibold pb-1">Sở thích</span>
+    <p class="m-0" x-html="employee.hobbies"></p>
 </div>
+
 
 
                     <div class="flex flex-col items-center justify-center py-4">

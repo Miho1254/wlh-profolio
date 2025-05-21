@@ -13,6 +13,7 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
+    /* Không cần bổ sung gì ở đây cho yêu cầu này */
     .member-card:hover {
       transform: translateY(-5px) scale(1.03);
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
@@ -45,25 +46,38 @@
           <i class="fas fa-users text-white"></i>
         </div>
         <h1 class="text-2xl font-bold text-blue-700">Thành Viên Team</h1>
+        <template x-if="loading.initialSetup || loading.employees">
+          <span class="ml-2 flex items-center gap-1 text-blue-500 animate-pulse">
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span class="text-base font-medium">Đang tải...</span>
+          </span>
+        </template></span>
       </div>
-    </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <div x-show="currentView === 'list'" x-cloak>
+    <div x-show="currentView ==</div>= 'list'" x-cloak>
       <nav class="w-full mb-8" x-show="!loading.initialSetup && categories.length > 0">
         <div class="max-w-5xl mx-auto px-4 py-3">
-          <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
-            <button @click="selectCategory('')"
-              :class="{ 'bg-blue-600 text-white shadow-md': selectedCategoryId === '', 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700': selectedCategoryId !== '' }"
-              class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ease-in-out">
+          <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-4">
+            <!-- Nút 'Tất cả' -->
+            <button @click="selectCategory('')" :class="selectedCategoryId === '' 
+      ? 'bg-blue-600 text-white' 
+      : 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700'"
+              class="w-full sm:w-auto text-center px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ease-in-out">
               Tất cả
             </button>
+
+            <!-- Các category -->
             <template x-for="category in categories" :key="category.id">
-              <button @click="selectCategory(category.id)"
-                :class="{ 'bg-blue-600 text-white shadow-md': selectedCategoryId === category.id, 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700': selectedCategoryId !== category.id }"
-                class="tab w-full sm:w-auto text-center px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ease-in-out truncate"
+              <button @click="selectCategory(category.id)" :class="selectedCategoryId === category.id 
+        ? 'bg-blue-600 text-white' 
+        : 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700'"
+                class="w-full sm:w-auto text-center px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ease-in-out truncate"
                 x-text="category.title">
               </button>
             </template>
@@ -101,34 +115,19 @@
       </div>
 
       <div x-show="!loading.employees && filteredEmployees.length > 0 && !apiError.employees"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
+        class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
         <template x-for="employee in filteredEmployees" :key="employee.id">
           <div @click="viewEmployeeDetail(employee.nickname)"
-            class="member-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer group">
-            <div class="relative">
-              <img :src="employee.avatarInCategory || 'https://via.placeholder.com/400x500?text=No+Image'"
-                :alt="employee.nickname" loading="lazy" class="w-full h-auto object-cover" style="aspect-ratio: 4/5;">
-              <div class="member-social absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent
-                          p-3 flex justify-center gap-x-4">
-                <a x-show="employee.facebook" :href="employee.facebook" target="_blank" @click.stop
-                  class="text-white hover:text-blue-400 transition-colors text-xl"><i class="fab fa-facebook-f"></i></a>
-                <a x-show="employee.twitter" :href="employee.twitter" target="_blank" @click.stop
-                  class="text-white hover:text-sky-400 transition-colors text-xl"><i class="fab fa-twitter"></i></a>
-                <a x-show="employee.github" :href="employee.github" target="_blank" @click.stop
-                  class="text-white hover:text-gray-400 transition-colors text-xl"><i class="fab fa-github"></i></a>
-              </div>
-            </div>
-            <div class="p-4 text-center">
-              <h3 class="text-lg font-semibold text-gray-900 truncate" x-text="employee.nickname"></h3>
-              <p class="text-sm text-blue-600 font-medium" x-text="employee.role"></p>
-              <p class="text-xs text-gray-500 mt-1 capitalize"
-                x-text="getCategoryNameByTrueId(employee.trueCategoryId)"></p>
-            </div>
+            class="cursor-pointer transition-transform duration-300 transform hover:scale-105 hover:animate-wiggle">
+            <img :src="employee.avatarInCategory || 'https://via.placeholder.com/400x500?text=No+Image'"
+              :alt="employee.nickname" loading="lazy"
+              class="w-full h-auto object-contain rounded-xl transition-opacity duration-500 opacity-0"
+              @load="$el.classList.add('opacity-100')" />
           </div>
         </template>
       </div>
 
-      <div x-show="!loading.employees && filteredEmployees.length === 0 && !apiError.employees"
+      <div x-show="!loading.employees && !loading.initialSetup && filteredEmployees.length === 0 && !apiError.employees"
         class="text-center py-12">
         <i class="fas fa-user-slash text-5xl text-gray-300 mb-4"></i>
         <h3 class="text-xl font-medium text-gray-500">Không tìm thấy thành viên nào</h3>
@@ -137,7 +136,7 @@
           x-show="searchTerm === '' && selectedCategoryId !== '' && allEmployees.length > 0">Chưa có thành viên nào
           trong danh mục này.</p>
         <p class="text-gray-400 mt-2"
-          x-show="searchTerm === '' && selectedCategoryId === '' && allEmployees.length === 0 && !loading.employees && !apiError.employees">
+          x-show="searchTerm === '' && selectedCategoryId === '' && allEmployees.length === 0 && !loading.employees && !loading.initialSetup && !apiError.employees">
           Hệ thống chưa có dữ liệu thành viên.
         </p>
       </div>
@@ -148,89 +147,7 @@
           class="mt-4 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600">Thử lại</button>
       </div>
     </div>
-    <div x-show="currentView === 'detail'" x-cloak>
-      <button @click="navigateToListView()"
-        class="mb-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors">
-        <i class="fas fa-arrow-left mr-2"></i> Quay lại danh sách
-      </button>
-
-      <div x-show="loading.employeeDetail" class="text-center py-10 text-gray-500">
-        <i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i>
-        <p class="mt-2">Đang tải thông tin chi tiết...</p>
-      </div>
-
-      <template x-if="!loading.employeeDetail && selectedEmployee">
-        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
-          <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
-            <img :src="selectedEmployee.avatarInProfile || 'https://via.placeholder.com/300x300?text=No+Avatar'"
-              :alt="selectedEmployee.nickname"
-              class="w-48 h-48 md:w-64 md:h-64 rounded-full object-cover shadow-lg border-4 border-white">
-            <div class="flex-1 text-center md:text-left">
-              <h1 class="text-3xl sm:text-4xl font-bold text-blue-700" x-text="selectedEmployee.nickname"></h1>
-              <p class="text-lg text-gray-600 mt-1" x-text="selectedEmployee.role"></p>
-              <p class="text-md text-gray-500 capitalize"
-                x-text="'Nhóm: ' + getCategoryNameByTrueId(selectedEmployee.trueCategoryId)"></p>
-              <p class="text-sm text-gray-500" x-show="selectedEmployee.joinYear"
-                x-text="'Tham gia từ năm: ' + selectedEmployee.joinYear"></p>
-
-              <div class="mt-4 flex justify-center md:justify-start space-x-4">
-                <a x-show="selectedEmployee.facebook" :href="selectedEmployee.facebook" target="_blank"
-                  class="text-gray-500 hover:text-blue-600 text-2xl transition-colors"><i
-                    class="fab fa-facebook-square"></i></a>
-                <a x-show="selectedEmployee.twitter" :href="selectedEmployee.twitter" target="_blank"
-                  class="text-gray-500 hover:text-sky-500 text-2xl transition-colors"><i
-                    class="fab fa-twitter-square"></i></a>
-                <a x-show="selectedEmployee.github" :href="selectedEmployee.github" target="_blank"
-                  class="text-gray-500 hover:text-gray-800 text-2xl transition-colors"><i
-                    class="fab fa-github-square"></i></a>
-                <a x-show="selectedEmployee.pixiv" :href="selectedEmployee.pixiv" target="_blank"
-                  class="text-gray-500 hover:text-blue-400 text-2xl transition-colors"><i
-                    class="fab fa-pinterest-square"></i> </a>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-8 pt-6 border-t">
-            <h3 class="text-xl font-semibold text-gray-800 mb-1">Giới thiệu:</h3>
-            <p class="text-gray-700 leading-relaxed prose"
-              x-html="selectedEmployee.description || 'Chưa có mô tả chi tiết.'"></p>
-
-            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-1">Câu cửa miệng:</h3>
-            <p class="text-gray-700 italic" x-text="selectedEmployee.catchphrase || 'Không có thông tin.'"></p>
-
-            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-1">Sở thích:</h3>
-            <p class="text-gray-700" x-text="selectedEmployee.hobbies || 'Không có thông tin.'"></p>
-
-            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Huy hiệu:</h3>
-            <div class="flex flex-wrap gap-3 items-center"
-              x-show="selectedEmployee.fullBadgesData && selectedEmployee.fullBadgesData.length > 0">
-              <template x-for="badge in selectedEmployee.fullBadgesData" :key="badge.id || badge.name">
-                <span class="px-3 py-1.5 rounded-full text-sm font-medium shadow-sm flex items-center"
-                  :style="{ backgroundColor: badge.color || '#E5E7EB', color: getContrastingTextColor(badge.color || '#E5E7EB') }">
-                  <span x-text="badge.emoji ? badge.emoji + ' ' : ''" class="mr-1"></span>
-                  <span x-text="badge.name"></span>
-                </span>
-              </template>
-            </div>
-            <p x-show="!selectedEmployee.fullBadgesData || selectedEmployee.fullBadgesData.length === 0"
-              class="text-gray-500 mt-2">
-              Thành viên này chưa có huy hiệu nào.
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div x-show="!loading.employeeDetail && !selectedEmployee" class="text-center py-10 ">
-        <i class="fas fa-exclamation-circle text-4xl mb-3"
-          :class="apiError.employeeDetail ? 'text-red-500' : 'text-gray-400'"></i>
-        <p :class="apiError.employeeDetail ? 'text-red-600' : 'text-gray-500'"
-          x-text="apiError.employeeDetail || 'Không tìm thấy thông tin thành viên này.'"></p>
-        <button x-show="apiError.employeeDetail" @click="retryFetchEmployeeDetail()"
-          class="mt-4 px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600">Thử lại</button>
-      </div>
-    </div>
   </main>
-
   <script>
     const API_BASE_URL = 'https://sonic.worldlotho.com/api/v1';
 
