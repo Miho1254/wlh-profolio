@@ -1,3 +1,35 @@
+<!-- 
+   ⠀⠀⠀⠀⠀⣀⣠⣤⣤⣴⣶⣶⣶⣶⣤⣤⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   ⚠ HACKER WARNING ⚠
+
+   Hỡi người bạn coder bí ẩn nào đang inspect file này...
+   ...hãy hiểu rằng đến chính tôi còn chẳng biết nó hoạt động kiểu gì 🫠
+
+   ✔ Dữ liệu đã qua filter & validation ở server
+   ✔ Không có dữ liệu nhạy cảm trong client-side
+   ✔ Một số hành vi phổ biến đã bị chặn (XSS, clickjacking v.v)
+   ✔ Nội dung được tải từ SonicJS → client render qua Alpine.js
+   ✔ API chạy sau Cloudflare, có log toàn bộ IP lạ
+   ✔ Ddos đã được bảo vệ bằng Cloudflare
+   ✔ Không có thông tin nhạy cảm trong source code
+
+   💡 Nếu bạn tìm thấy lỗ hổng mà tôi chưa phát hiện, hãy gửi tôi một cái CV
+   ✌️ Peace, và chúc bạn đọc source code này không bị tổn thương tâm lý
+
+   --- SYSTEM OVERVIEW ---
+    ┌───────────────┐
+    │   Client UI   │ ←─── HTML + Alpine.js
+    └──────┬────────┘
+           │ fetch
+           ▼
+    ┌───────────────┐
+    │ SonicJS API   │ ←── Cloudflare D1 (DB) + R2 (images/files)
+    └───────────────┘
+           ▲
+        Cloudflare Worker / Proxy (optional)
+
+-->
+
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -115,14 +147,20 @@
       </div>
 
       <div x-show="!loading.employees && filteredEmployees.length > 0 && !apiError.employees"
-        class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
+        class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-8">
         <template x-for="employee in filteredEmployees" :key="employee.id">
           <div @click="viewEmployeeDetail(employee.nickname)"
-            class="cursor-pointer transition-transform duration-300 transform hover:scale-105 hover:animate-wiggle">
-            <img :src="employee.avatarInCategory || 'https://via.placeholder.com/400x500?text=No+Image'"
-              :alt="employee.nickname" loading="lazy"
-              class="w-full h-auto object-contain rounded-xl transition-opacity duration-500 opacity-0"
-              @load="$el.classList.add('opacity-100')" />
+        class="cursor-pointer transition-transform duration-300 transform hover:scale-105 hover:animate-wiggle">
+        <img :src="employee.avatarInCategory || 'https://placewaifu.com/image/385/622'"
+          :alt="employee.nickname" loading="lazy"
+          class="w-full h-auto object-contain rounded-xl transition-opacity duration-500 opacity-0"
+          @load="$el.classList.add('opacity-100')" />
+        <!-- Responsibilities as badge row below image -->
+        <div class="mt-3 flex justify-center">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 font-bold text-sm shadow-sm border border-blue-200">
+            <span x-text="employee.responsibilities || 'Chưa rõ vai trò'"></span>
+            </span>
+          </div>
           </div>
         </template>
       </div>

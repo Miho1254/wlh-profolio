@@ -1,3 +1,34 @@
+<!-- 
+   ⠀⠀⠀⠀⠀⣀⣠⣤⣤⣴⣶⣶⣶⣶⣤⣤⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   ⚠ HACKER WARNING ⚠
+
+   Hỡi người bạn coder bí ẩn nào đang inspect file này...
+   ...hãy hiểu rằng đến chính tôi còn chẳng biết nó hoạt động kiểu gì 🫠
+
+   ✔ Dữ liệu đã qua filter & validation ở server
+   ✔ Không có dữ liệu nhạy cảm trong client-side
+   ✔ Một số hành vi phổ biến đã bị chặn (XSS, SqlInjection, clickjacking v.v)
+   ✔ Nội dung được tải từ SonicJS → client render qua Alpine.js
+   ✔ API chạy sau Cloudflare, có log toàn bộ IP lạ
+   ✔ Ddos đã được bảo vệ bằng Cloudflare
+   ✔ Không có thông tin nhạy cảm trong source code
+
+   💡 Nếu bạn tìm thấy lỗ hổng mà tôi chưa phát hiện, hãy gửi tôi một cái CV
+   ✌️ Peace, và chúc bạn đọc source code này không bị tổn thương tâm lý
+
+   --- SYSTEM OVERVIEW ---
+    ┌───────────────┐
+    │   Client UI   │ ←─── HTML + Alpine.js
+    └──────┬────────┘
+           │ fetch
+           ▼
+    ┌───────────────┐
+    │ SonicJS API   │ ←── Cloudflare D1 (DB) + R2 (images/files)
+    └───────────────┘
+           ▲
+        Cloudflare Worker / Proxy (optional)
+
+-->
 <!DOCTYPE html>
 <html lang="vi">
 
