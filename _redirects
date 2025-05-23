@@ -3,4 +3,5 @@
 # Dòng này sẽ rewrite bất kỳ URL nào có dạng /staff/SOMENAME
 # sang file /employee-detail.html.
 # JavaScript trong employee-detail.html sau đó phải tự lấy SOMENAME từ path.
-/staff/:nickname  /staff-detail.html  200
+/staff/:nickname  https://worldlotho.com/staff-detail?nickname=:nickname  301
+
