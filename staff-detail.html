@@ -55,10 +55,15 @@
             display: none;
             /* Ẩn thanh cuộn */
         }
+
+        /* fix */
+        html, body {
+            overflow-x: hidden;
+        }
     </style>
 </head>
 
-<body class="bg-white text-zinc-800" x-data="employeeDetailApp()" x-init="init()">
+<body class="bg-white text-zinc-800 overflow-x-hidden" x-data="employeeDetailApp()" x-init="init()">
 
     <div x-show="loading.employee || loading.initialData"
         class="min-h-[calc(100vh-68px)] flex flex-col items-center justify-center text-gray-500 fixed inset-0 bg-white/50 backdrop-blur-sm z-50"
