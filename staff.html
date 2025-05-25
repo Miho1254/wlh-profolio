@@ -77,7 +77,7 @@
         <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
           <i class="fas fa-users text-white"></i>
         </div>
-        <h1 class="text-2xl font-bold text-blue-700">Thành Viên Team</h1>
+        <h1 class="text-2xl font-bold text-blue-700">Thành Viên</h1>
         <template x-if="loading.initialSetup || loading.employees">
           <span class="ml-2 flex items-center gap-1 text-blue-500 animate-pulse">
             <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div class="flex flex-col items-start justify-center text-left">
           <h2 x-text="currentCategoryTitle()" class="text-3xl font-bold mb-1 text-gray-800 capitalize"></h2>
-          <p x-text="currentCategoryDescription()" class="text-gray-600 text-sm"></p>
+          <!-- <p x-text="currentCategoryDescription()" class="text-gray-600 text-sm"></p> -->
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto">
           <div class="relative w-full">
@@ -446,7 +446,7 @@
           if (this.apiError.categories) return 'Lỗi tải danh mục';
           if (this.selectedCategoryId === '') return 'Tất cả thành viên';
           const catName = this.getCategoryNameByTrueId(this.selectedCategoryId);
-          return (catName && !['Chưa phân loại', 'Không xác định', 'Đang tải...', 'Lỗi tải category'].includes(catName)) ? `Nhóm ${catName}` : 'Tất cả thành viên';
+          return (catName && !['Chưa phân loại', 'Không xác định', 'Đang tải...', 'Lỗi tải category'].includes(catName)) ? `${catName}` : 'Tất cả thành viên';
         },
         currentCategoryDescription() { /* ... như cũ ... */
           if (this.loading.initialSetup && this.categories.length === 0) return '';
