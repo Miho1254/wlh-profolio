@@ -1,5 +1,5 @@
-# robots.txt file for worldlotho.com
-# Optimized for SEO
+User-agent: Googlebot
+Disallow:
 
 User-agent: *
 Disallow: /admin/
@@ -9,8 +9,4 @@ Disallow: /cart/
 Disallow: /checkout/
 Disallow: /search/
 
-# Allow search engines to crawl the main content
-Allow: /
-
-# Sitemap location
-Sitemap: https://www.worldlotho.com/sitemap.xml
+Sitemap: https://worldlotho.com/sitemap.xml
