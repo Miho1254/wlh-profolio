@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 - Không tìm thấy trang</title>
+    <title>404 - Not Found</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,34 +15,71 @@
       body {
         font-family: 'Inter', sans-serif;
       }
+
+      /* Skeleton loading animation */
+      .skeleton {
+        animation: pulse 1.5s ease-in-out infinite;
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 200% 100%;
+      }
+
+      @keyframes pulse {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
     </style>
   </head>
   <body class="bg-gray-50 flex items-center justify-center min-h-screen px-4">
-    <div class="w-full text-center">
-      <!-- GIF -->
-      <img
-        src="/public/images/404.gif"
-        alt="404 gif"
-        class="mx-auto mb-8 w-full max-w-md sm:max-w-lg md:max-w-xl object-contain rounded-xl"
-      />
+    <div class="w-full max-w-xl text-center space-y-6">
+      <!-- GIF Container with skeleton -->
+      <div
+        id="gif-container"
+        class="relative mx-auto w-full rounded-xl overflow-hidden"
+      >
+        <div
+          id="gif-skeleton"
+          class="skeleton aspect-[16/9] w-full rounded-xl"
+        ></div>
+        <img
+          src="/public/images/404.gif"
+          alt="404 gif"
+          class="hidden w-full object-contain rounded-xl"
+          id="gif"
+          onload="document.getElementById('gif-skeleton').style.display='none'; this.classList.remove('hidden')"
+        />
+      </div>
 
       <!-- Tiêu đề -->
-      <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-4">
-        404 - Not found 
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-800">
+        404 - Not Found
       </h1>
 
       <!-- Mô tả -->
-      <p class="text-gray-600 text-base sm:text-lg mb-6">
+      <p class="text-gray-600 text-sm sm:text-base md:text-lg">
         The page you are looking for does not exist or has been moved. Please try returning to the homepage.
       </p>
 
       <!-- Nút -->
       <a
         href="/"
-        class="inline-block px-6 py-3 text-sm sm:text-base bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition"
+        class="inline-block px-6 py-3 text-sm md:text-base bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition"
       >
         Turn back
       </a>
     </div>
+
+    <script>
+      // Fallback in case image doesn't load
+      document.getElementById('gif').addEventListener('error', () => {
+        const gif = document.getElementById('gif');
+        const skeleton = document.getElementById('gif-skeleton');
+        skeleton.style.display = 'none';
+        gif.alt = 'GIF not available';
+      });
+    </script>
   </body>
 </html>
