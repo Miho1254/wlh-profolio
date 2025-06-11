@@ -2,6 +2,3 @@
 
 # Redirect /staff/:nickname sang staff-detail
 /staff/:nickname  /staff-detail?nickname=:nickname  301
-
-# Còn lại: fallback tất cả về 404.html
-/*  /404.html  404
