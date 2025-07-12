@@ -113,7 +113,23 @@
     <!-- Masonry Grid -->
     <section class="container mx-auto px-4 py-5">
         <div class="columns-2 lg:columns-4 gap-x-4">
-            <!-- Item 1 -->
+            
+          <!-- Item 1 -->
+            <div class="masonry-item relative rounded-lg bg-white overflow-visible">
+                <div class="relative w-full">
+                    <div class="skeleton absolute inset-0"></div>
+                    <img src="/public/images/4th.webp" alt="Team Outing" loading="lazy"
+                        class="block w-full h-auto object-contain rounded-lg" onclick="openLightbox(this.src)"
+                        onload="this.classList.remove('opacity-0'); this.previousElementSibling.classList.add('hidden')">
+                </div>
+                <div
+                    class="absolute bottom-2 left-2 bg-black bg-opacity-40 backdrop-blur-sm text-white text-xs sm:text-base font-bold px-2 sm:px-3 py-1 rounded-full max-w-[90%] truncate sm:whitespace-nowrap whitespace-normal"
+                    title="3 Year Anniversary">
+                    4th Year Anniversary
+                </div>
+            </div>
+
+          <!-- Item 1 -->
             <div class="masonry-item relative rounded-lg bg-white overflow-visible">
                 <div class="relative w-full">
                     <div class="skeleton absolute inset-0"></div>
@@ -124,7 +140,7 @@
                 <div
                     class="absolute bottom-2 left-2 bg-black bg-opacity-40 backdrop-blur-sm text-white text-xs sm:text-base font-bold px-2 sm:px-3 py-1 rounded-full max-w-[90%] truncate sm:whitespace-nowrap whitespace-normal"
                     title="3 Year Anniversary">
-                    3 Year Anniversary
+                    3rd Year Anniversary
                 </div>
             </div>
             <!-- Item 2 -->
@@ -138,7 +154,7 @@
                 <div
                     class="absolute bottom-2 left-2 bg-black bg-opacity-40 backdrop-blur-sm text-white text-xs sm:text-base font-bold px-2 sm:px-3 py-1 rounded-full max-w-[90%] truncate sm:whitespace-nowrap whitespace-normal"
                     title="2 Year Anniversary">
-                    2 Year Anniversary
+                    2nd Year Anniversary
                 </div>
             </div>
 
