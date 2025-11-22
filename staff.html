@@ -192,222 +192,163 @@
     </div>
   </main>
   <script>
+    // Link đến server API nơi chúng ta sẽ lấy dữ liệu về.
     const API_BASE_URL = 'https://sonic.worldlotho.com/api/v1';
 
+    // BỘ NÃO CỦA TRANG WEB :)
+    // Toàn bộ code điều khiển trang danh sách thành viên nằm trong hàm staffApp() này.
+    // Alpine.js sẽ sử dụng object mà hàm này trả về để làm cho trang web có "sự sống".
     function staffApp() {
       return {
+        //----------------------------------------------------------------------
+        // NƠI LƯU TRỮ DỮ LIỆU VÀ TRẠNG THÁI CỦA TRANG
+        //----------------------------------------------------------------------
+
+        // Dùng để chắc chắn rằng code khởi tạo không bị chạy lại nhiều lần một cách vô ích.
         _initialized: false,
+
+        // Lưu trạng thái xem hiện tại, nhưng vì trang này chỉ có 1 chế độ xem 'list' nên ít được dùng.
         currentView: 'list',
+
+        // Mảng này sẽ chứa TẤT CẢ nhân viên sau khi tải về từ server.
         allEmployees: [],
+
+        // Mảng này chứa các danh mục (nhóm) như 'Hà Nội', 'Hồ Chí Minh'...
         categories: [],
-        allBadges: [],
-        selectedEmployee: null,
+
+        // ID của danh mục đang được chọn. Nếu rỗng, nghĩa là đang chọn "Tất cả".
         selectedCategoryId: '',
-        currentEmployeeIdentifier: null,
+
+        // Lưu lại bất cứ thứ gì người dùng gõ vào ô tìm kiếm.
         searchTerm: '',
 
+        // Giúp chúng ta biết khi nào nên hiện hiệu ứng "đang tải..."
         loading: {
-          initialSetup: true,
-          employees: false, // *** KHỞI TẠO LÀ FALSE ***
-          employeeDetail: false,
+          initialSetup: true, // Đang tải những thứ cần thiết ban đầu? (ví dụ: danh mục)
+          employees: false, // Đang tải danh sách nhân viên?
         },
-        apiError: { /* ... như cũ ... */ },
 
+        // Nếu API bị lỗi, thông báo lỗi sẽ được lưu vào đây.
+        apiError: {
+          categories: null,
+          employees: null,
+        },
+
+        //----------------------------------------------------------------------
+        // CÁC HÀM KHỞI ĐỘNG VÀ VÒNG ĐỜI
+        //----------------------------------------------------------------------
+
+        // HÀM KHỞI ĐỘNG - Chạy ngay khi trang web vừa tải xong.
+        // Nhiệm vụ của nó là tải những dữ liệu cần thiết ban đầu và đọc URL.
         async initApp() {
-          if (this._initialized) {
-            console.warn('Alpine: initApp called again, skipping.');
-            return;
-          }
+          if (this._initialized) return; // Nếu đã chạy rồi thì không chạy lại.
           this._initialized = true;
-          console.log('Alpine: Staff App Initializing (Actual Run)...');
           this.loading.initialSetup = true;
 
-          try {
-            await Promise.allSettled([this.loadCategories(), this.loadAllBadges()]);
-          } finally {
-            this.loading.initialSetup = false;
-          }
-          await this.handleInitialURL();
-          window.addEventListener('popstate', async () => await this.handleInitialURL());
-          console.log('Alpine: Init completed.');
+          // Bước 1: Tải danh sách các category trước.
+          await this.loadCategories();
+          this.loading.initialSetup = false; // Tải xong rồi, tắt loading.
+
+          // Bước 2: Đọc địa chỉ URL để xem người dùng có muốn xem một category cụ thể không.
+          await this.handleURL();
+
+          // Bước 3: Lắng nghe khi người dùng bấm nút back/forward trên trình duyệt.
+          window.addEventListener('popstate', () => this.handleURL());
         },
 
-        async handleInitialURL() {
-          console.log('Alpine: Handling URL:', window.location.pathname + window.location.search);
+        // Đọc URL và cập nhật trang thái trang web cho phù hợp.
+        // Ví dụ: nếu url là `.../staff.html?category=Hà%20Nội`, nó sẽ tự động chọn category "Hà Nội".
+        async handleURL() {
           const urlParams = new URLSearchParams(window.location.search);
-          const pathParts = window.location.pathname.toLowerCase().split('/').filter(Boolean);
+          const categoryTitleFromUrl = urlParams.get('category');
 
-          this.selectedEmployee = null;
-          this.apiError.employeeDetail = null;
-          this.currentEmployeeIdentifier = null;
+          this.currentView = 'list'; // Trang này chỉ có 1 view là 'list'.
 
-          let needsEmployeeLoad = (this.allEmployees.length === 0 && !this.apiError.employees);
-
-          if (urlParams.has('category')) {
-            this.currentView = 'list';
-            const categoryTitleFromUrl = decodeURIComponent(urlParams.get('category'));
-            if (!this.loading.initialSetup) {
-              const foundCategory = this.categories.find(c => c.title && c.title.toLowerCase() === categoryTitleFromUrl.toLowerCase());
-              this.selectedCategoryId = foundCategory ? foundCategory.id : '';
-              if (!foundCategory && categoryTitleFromUrl) {
-                const cleanUrl = new URL(window.location.origin + (pathParts.length > 0 && !pathParts[0].endsWith('.html') ? `/staff` : window.location.pathname));
-                history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search);
-              }
+          // Nếu URL có "?category=...", tìm và chọn category đó.
+          if (categoryTitleFromUrl) {
+            if (this.loading.initialSetup) {
+              // Chờ một chút để chắc chắn là các category đã được tải về xong.
+              await new Promise(resolve => this.$watch('loading.initialSetup', val => !val && resolve()));
             }
-          } else if (pathParts.length === 2 && pathParts[0] === 'staff') {
-            const nicknameFromUrl = decodeURIComponent(pathParts[1]);
-            this.currentView = 'detail';
-            this.currentEmployeeIdentifier = nicknameFromUrl;
-          } else if ((pathParts.length === 1 && (pathParts[0] === 'staff' || pathParts[0].endsWith('.html'))) || pathParts.length === 0) {
-            this.currentView = 'list';
-            this.selectedCategoryId = '';
-          } else {
-            history.replaceState({}, "Danh sách", "/staff");
-            this.currentView = 'list';
-            this.selectedCategoryId = '';
+            const foundCategory = this.categories.find(c => c.title && c.title.toLowerCase() === decodeURIComponent(categoryTitleFromUrl).toLowerCase());
+            this.selectedCategoryId = foundCategory ? foundCategory.id : '';
           }
 
-          if (needsEmployeeLoad) {
-            console.log('Alpine: `needsEmployeeLoad` is true, setting loading.employees = true and calling loadAndProcessEmployees.');
-            this.loading.employees = true; // *** SET TRUE NGAY TRƯỚC KHI GỌI ***
+          // Nếu danh sách nhân viên chưa có gì, thì đây là lúc tải về.
+          if (this.allEmployees.length === 0) {
             await this.loadAndProcessEmployees();
-          } else if (this.allEmployees.length > 0 && this.loading.employees) {
-            // Nếu không cần load (đã có data) nhưng cờ loading vẫn true (ít xảy ra với logic mới)
-            this.loading.employees = false;
           }
-
-
-          if (this.currentView === 'detail' && this.currentEmployeeIdentifier) {
-            if (this.allEmployees.length === 0 && !this.loading.employees && !this.apiError.employees) {
-              console.log("Alpine: Detail view, but no employees and not loading. Forcing load.");
-              this.loading.employees = true; // Set loading cho employees
-              await this.loadAndProcessEmployees(true); // Force load
-            }
-            if (!this.apiError.employees) {
-              await this.viewEmployeeDetail(this.currentEmployeeIdentifier, false);
-            } else {
-              this.loading.employeeDetail = false;
-              this.apiError.employeeDetail = "Không thể hiển thị chi tiết do lỗi tải danh sách chung."
-            }
-          }
-          console.log(`Alpine: URL Handled. View: ${this.currentView}, SelCatID: ${this.selectedCategoryId}, EmpID: ${this.currentEmployeeIdentifier}, AllEmps: ${this.allEmployees.length}, LoadEmps: ${this.loading.employees}`);
         },
 
-        async loadCategories() { /* ... như cũ, nhưng không set loading.initialSetup ... */
-          console.log("Alpine: Loading categories...");
-          this.apiError.categories = null;
-          // this.loading.categories = true; // Không cần cờ riêng này nữa nếu initialSetup bao gồm nó
+        //----------------------------------------------------------------------
+        // CÁC HÀM TẢI DỮ LIỆU TỪ SERVER
+        //----------------------------------------------------------------------
+
+        // HÀM TIỆN ÍCH: Giúp việc gọi API gọn gàng hơn.
+        // Thay vì lặp lại code try-catch ở khắp nơi, chúng ta gom nó vào đây.
+        // Cứ cần lấy dữ liệu gì từ server thì gọi hàm này cho nhanh.
+        async _fetchHelper(endpoint, errorKey) {
+          this.apiError[errorKey] = null; // Reset lỗi cũ trước khi gọi.
           try {
-            const response = await fetch(`${API_BASE_URL}/categories`);
-            if (!response.ok) throw new Error(`Không thể tải danh mục (Lỗi ${response.status})`);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`);
+            if (!response.ok) {
+              throw new Error(`Lỗi ${response.status} khi tải dữ liệu.`);
+            }
             const data = await response.json();
-            this.categories = data.data || [];
+            return data.data || []; // Trả về mảng dữ liệu, hoặc mảng rỗng nếu không có gì.
           } catch (error) {
-            this.apiError.categories = error.message; this.categories = [];
-          } finally {
-            // this.loading.categories = false;
+            this.apiError[errorKey] = error.message; // Nếu có lỗi, lưu lại.
+            return null;
           }
         },
 
+        // Tải danh sách các danh mục (Hà Nội, HCM...) từ server.
+        async loadCategories() {
+          this.categories = await this._fetchHelper('/categories', 'categories') || [];
+        },
+
+        // Tải danh sách tất cả nhân viên từ server.
         async loadAndProcessEmployees(force = false) {
-          // Bỏ điều kiện if (this.loading.employees && !force) ở đầu
-          // vì hàm gọi (handleInitialURL) đã set loading.employees = true trước khi gọi
+          // Nếu đã có dữ liệu rồi thì không cần tải lại, trừ khi bị "ép" (force = true).
           if (this.allEmployees.length > 0 && !force) {
-            console.log("Alpine: loadAndProcessEmployees - Employees already loaded and not forcing. Setting loading flag false.");
-            this.loading.employees = false; // QUAN TRỌNG: Nếu đã có và không force, đảm bảo cờ loading tắt
             return;
           }
 
-          console.log("Alpine: Attempting to load and process employees (force=" + force + ")...");
-          // loading.employees đã được set true bởi hàm gọi nó, hoặc là true từ đầu nếu logic thay đổi
-          this.apiError.employees = null;
-          try {
-            const response = await fetch(`${API_BASE_URL}/employees`);
-            if (!response.ok) throw new Error(`Không thể tải danh sách thành viên (Lỗi ${response.status})`);
-            const data = await response.json();
-            const rawEmployees = data.data || [];
+          this.loading.employees = true; // Bật loading...
+          const rawEmployees = await this._fetchHelper('/employees', 'employees');
 
-            if (this.categories.length === 0 && !this.loading.initialSetup && !this.apiError.categories) {
-              console.warn("Alpine: Categories array is empty when processing employees.");
-            }
-
+          if (rawEmployees) {
+            // Xử lý dữ liệu thô: Gắn 'trueCategoryId' vào mỗi nhân viên để việc lọc sau này dễ hơn.
             this.allEmployees = rawEmployees.map(emp => {
               const categoryObject = this.categories.find(
                 cat => cat.title && emp.category && cat.title.toLowerCase() === emp.category.toLowerCase()
               );
               return { ...emp, trueCategoryId: categoryObject ? categoryObject.id : null };
             });
-          } catch (error) {
-            this.apiError.employees = error.message; this.allEmployees = [];
-          } finally {
-            this.loading.employees = false; // QUAN TRỌNG: Luôn set false ở cuối
-            console.log("Alpine: Finished loading employees. Loading state:", this.loading.employees, "Count:", this.allEmployees.length);
+          } else {
+            this.allEmployees = []; // Nếu API lỗi, đặt danh sách thành mảng rỗng.
           }
+          this.loading.employees = false; // Tải xong, tắt loading.
         },
 
-        async loadAllBadges() { /* ... như cũ, nhưng không set loading.initialSetup ... */
-          console.log("Alpine: Loading all badges...");
-          this.apiError.badges = null;
-          try {
-            const response = await fetch(`${API_BASE_URL}/badges`);
-            if (!response.ok) throw new Error(`Không thể tải huy hiệu (Lỗi ${response.status})`);
-            const data = await response.json();
-            this.allBadges = data.data || [];
-          } catch (error) {
-            this.apiError.badges = error.message; this.allBadges = [];
-          }
-        },
+        //----------------------------------------------------------------------
+        // "THUỘC TÍNH THÔNG MINH" (GETTERS)
+        //----------------------------------------------------------------------
 
-        async fetchEmployeeByIdentifier(identifier) { /* ... như cũ ... */
-          console.log(`Alpine: Fetching detail for employee Identifier: ${identifier}`);
-          this.loading.employeeDetail = true;
-          this.selectedEmployee = null;
-          this.apiError.employeeDetail = null;
-          try {
-            if (this.allEmployees.length === 0 && !this.loading.employees && !this.apiError.employees) {
-              console.log("Alpine: fetchEmployeeByIdentifier - allEmployees empty, loading them first...");
-              this.loading.employees = true; // Set loading cho employees
-              await this.loadAndProcessEmployees(true); // Force load
-            }
-            if (this.apiError.employees) {
-              throw new Error("Không thể tìm thành viên do lỗi tải danh sách.");
-            }
+        // "BỘ LỌC THẦN KỲ" - Tự động chạy lại mỗi khi người dùng làm gì đó.
+        // Đây là một "getter", nó giống như một biến nhưng giá trị của nó được TÍNH TOÁN tự động.
+        // Khi bạn chọn category hoặc gõ vào ô tìm kiếm, nó sẽ tự lọc ra danh sách đúng ý bạn.
+        get filteredEmployees() {
+          if (this.loading.employees) return []; // Nếu đang tải, trả về ds rỗng để UI hiện skeleton.
 
-            let foundEmployee = this.allEmployees.find(emp => emp.nickname && emp.nickname.toLowerCase() === identifier.toLowerCase());
-
-            if (foundEmployee) {
-              this.selectedEmployee = JSON.parse(JSON.stringify(foundEmployee));
-              if (this.selectedEmployee.badges && typeof this.selectedEmployee.badges === 'string') {
-                const badgeNamesOrIds = this.selectedEmployee.badges.split(',').map(b => b.trim());
-                this.selectedEmployee.fullBadgesData = badgeNamesOrIds.map(nameOrId => {
-                  const badgeInfo = this.allBadges.find(b => b.id === nameOrId || (b.name && b.name.toLowerCase() === nameOrId.toLowerCase()));
-                  return badgeInfo ? badgeInfo : { name: nameOrId.trim(), color: '#D1D5DB', emoji: '❔', id: `unknown-badge-${nameOrId}` };
-                }).filter(b => b && b.name);
-              } else {
-                this.selectedEmployee.fullBadgesData = [];
-              }
-            } else {
-              this.apiError.employeeDetail = `Không tìm thấy thành viên "${identifier}".`;
-            }
-          } catch (error) {
-            this.apiError.employeeDetail = error.message || "Lỗi khi tải thông tin chi tiết.";
-          } finally {
-            this.loading.employeeDetail = false;
-          }
-        },
-        retryFetchEmployeeDetail() { /* ... như cũ ... */
-          if (this.currentEmployeeIdentifier) {
-            this.fetchEmployeeByIdentifier(this.currentEmployeeIdentifier);
-          }
-        },
-
-        get filteredEmployees() { /* ... như cũ, nhưng đảm bảo this.loading.employees đúng ... */
-          if (this.loading.employees) return []; // Nếu đang tải employees, trả về mảng rỗng để skeleton hiện
-          // Các logic lọc khác giữ nguyên
           let filtered = this.allEmployees;
+
+          // 1. Lọc theo danh mục
           if (this.selectedCategoryId) {
             filtered = filtered.filter(emp => emp.trueCategoryId === this.selectedCategoryId);
           }
+
+          // 2. Lọc theo từ khóa tìm kiếm
           if (this.searchTerm.trim() !== '') {
             const lowerSearchTerm = this.searchTerm.toLowerCase();
             filtered = filtered.filter(emp =>
@@ -415,83 +356,44 @@
               (emp.role && emp.role.toLowerCase().includes(lowerSearchTerm))
             );
           }
-          return filtered;
+          return filtered; // Trả về danh sách đã được lọc xong.
         },
 
-        selectCategory(categoryId) { /* ... như cũ ... */
-          this.selectedCategoryId = categoryId;
-          this.searchTerm = '';
-          const categoryObject = this.categories.find(cat => cat.id === categoryId);
-          const categoryTitleForUrl = categoryObject ? encodeURIComponent(categoryObject.title) : '';
-          const url = new URL(window.location.origin + '/staff');
-          if (categoryTitleForUrl) {
-            url.searchParams.set('category', categoryTitleForUrl);
-          }
-          const newRelativeUrl = url.pathname + url.search;
-          if (this.currentView === 'list' && (window.location.pathname + window.location.search) !== newRelativeUrl) {
-            history.pushState({ selectedCategoryId: this.selectedCategoryId }, '', newRelativeUrl);
-          }
-        },
-
-        getCategoryNameByTrueId(trueCategoryId) { /* ... như cũ ... */
-          if (!trueCategoryId) return 'Chưa phân loại';
-          if (this.loading.initialSetup && this.categories.length === 0 && !this.apiError.categories) return 'Đang xử lý...';
-          if (this.apiError.categories) return 'Lỗi tải category';
-          const category = this.categories.find(cat => cat.id === trueCategoryId);
-          return category ? category.title : 'Không xác định';
-        },
-
-        currentCategoryTitle() { /* ... như cũ ... */
-          if (this.loading.initialSetup && this.categories.length === 0 && !this.apiError.categories) return 'Đang tải...';
-          if (this.apiError.categories) return 'Lỗi tải danh mục';
+        // Lấy ra tên của category đang được chọn để hiển thị.
+        currentCategoryTitle() {
+          if (this.loading.initialSetup) return 'Đang tải...';
           if (this.selectedCategoryId === '') return 'Tất cả thành viên';
-          const catName = this.getCategoryNameByTrueId(this.selectedCategoryId);
-          return (catName && !['Chưa phân loại', 'Không xác định', 'Đang tải...', 'Lỗi tải category'].includes(catName)) ? `${catName}` : 'Tất cả thành viên';
-        },
-        currentCategoryDescription() { /* ... như cũ ... */
-          if (this.loading.initialSetup && this.categories.length === 0) return '';
-          if (!this.selectedCategoryId) return 'Danh sách toàn bộ thành viên trong team.';
           const category = this.categories.find(cat => cat.id === this.selectedCategoryId);
-          return category ? (category.body || `Thành viên thuộc nhóm ${category.title}.`) : '';
+          return category ? category.title : 'Tất cả thành viên';
         },
 
-        async viewEmployeeDetail(nickname, updateHistory = true) { // identifier giờ là nickname
-          console.log(`Alpine (List Page): Navigating to detail page for employee Nickname: ${nickname}`);
-          if (nickname) {
-            // Điều hướng trình duyệt đến trang chi tiết mới
-            window.location.href = `staff-detail.html?nickname=${encodeURIComponent(nickname)}`;
+        //----------------------------------------------------------------------
+        // CÁC HÀNH ĐỘNG CỦA NGƯỜI DÙNG
+        //----------------------------------------------------------------------
+
+        // Chạy khi người dùng bấm vào một nút danh mục.
+        selectCategory(categoryId) {
+          this.selectedCategoryId = categoryId;
+          this.searchTerm = ''; // Reset ô tìm kiếm để tránh kết quả lọc bị sai.
+
+          // Cập nhật lại URL trên thanh địa chỉ của trình duyệt mà không cần tải lại trang.
+          const url = new URL(window.location.pathname, window.location.origin);
+          const categoryObject = this.categories.find(cat => cat.id === categoryId);
+          if (categoryObject) {
+            url.searchParams.set('category', encodeURIComponent(categoryObject.title));
           } else {
-            console.error("Alpine (List Page): Nickname is undefined, cannot navigate.");
+            url.searchParams.delete('category'); // Xóa param nếu chọn "Tất cả"
           }
-          // Không cần thay đổi currentView hay pushState ở đây nữa vì là full navigation
-        },
-        navigateToListView() { /* ... như cũ ... */
-          this.currentView = 'list';
-          this.selectedEmployee = null;
-          this.apiError.employeeDetail = null;
-          this.currentEmployeeIdentifier = null;
-          const url = new URL(window.location.origin + '/staff');
-          const currentCategoryObject = this.categories.find(cat => cat.id === this.selectedCategoryId);
-          if (currentCategoryObject) {
-            url.searchParams.set('category', encodeURIComponent(currentCategoryObject.title));
-          }
-          const newRelativeUrl = url.pathname + url.search;
-          if ((window.location.pathname + window.location.search) !== newRelativeUrl) {
-            history.pushState({ selectedCategoryId: this.selectedCategoryId }, 'Danh sách', newRelativeUrl);
-          }
+          history.pushState({ selectedCategoryId: categoryId }, '', url.toString());
         },
 
-        getContrastingTextColor(hexColor) { /* ... như cũ ... */
-          if (!hexColor) return '#1f2937';
-          let color = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
-          if (color.length === 3) color = color.split('').map(char => char + char).join('');
-          if (color.length !== 6) return '#1f2937';
-          const r = parseInt(color.substring(0, 2), 16);
-          const g = parseInt(color.substring(2, 4), 16);
-          const b = parseInt(color.substring(4, 6), 16);
-          const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-          return (yiq >= 135) ? '#111827' : '#FFFFFF';
-        }
+        // Chạy khi người dùng bấm vào ảnh một thành viên để xem chi tiết.
+        viewEmployeeDetail(nickname) {
+          if (nickname) {
+            // Đơn giản là điều hướng sang trang chi tiết.
+            window.location.href = `staff-detail.html?nickname=${encodeURIComponent(nickname)}`;
+          }
+        },
       }
     }
   </script>
